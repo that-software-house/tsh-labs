@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block internal/app routes
+Disallow: /reset-password
+Disallow: /thank-you
+Disallow: /data-insights
+
+Sitemap: https://thatsoftwarehouse.com/sitemap.xml

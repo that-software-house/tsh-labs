@@ -1,0 +1,241 @@
+.docanalyzer-app {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1rem 0 2rem;
+}
+
+.docanalyzer-card {
+  padding: 1.4rem;
+  display: grid;
+}
+
+.docanalyzer-header {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.docanalyzer-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f97316, #f43f5e);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.docanalyzer-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f162b;
+}
+
+.docanalyzer-header p {
+  margin: 0.15rem 0 0;
+  color: #4c5270;
+}
+
+.docanalyzer-upload {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: #f8f9ff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.docanalyzer-upload:hover {
+  border-color: #f4ad0d;
+  box-shadow: 0 10px 24px rgba(244, 173, 13, 0.12);
+}
+
+.docanalyzer-upload input {
+  display: none;
+}
+
+.docanalyzer-upload span {
+  font-weight: 600;
+  color: #0f162b;
+}
+
+.docanalyzer-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.docanalyzer-error {
+  margin: 0.5rem 0 0;
+  color: #d14343;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.docanalyzer-preview {
+  margin-top: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.docanalyzer-preview-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #f1f5f9;
+  color: #0f162b;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.docanalyzer-count {
+  font-weight: 600;
+  color: #475569;
+}
+
+.docanalyzer-preview-body {
+  padding: 1rem;
+  min-height: 140px;
+  color: #111827;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.docanalyzer-actions {
+  margin-top: 1.1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.docanalyzer-primary {
+  width: 100%;
+  background: #f4ad0d;
+  color: #0f162b;
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: 0 14px 34px rgba(244, 173, 13, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.docanalyzer-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 38px rgba(244, 173, 13, 0.34);
+}
+
+.docanalyzer-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(244, 173, 13, 0.22);
+}
+
+.docanalyzer-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.docanalyzer-secondary-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.docanalyzer-secondary-actions button {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  color: #0f162b;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.docanalyzer-secondary-actions button:hover {
+  background: #f5f7fb;
+  transform: translateY(-1px);
+}
+
+.docanalyzer-results {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 1.4rem;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.06);
+}
+
+.docanalyzer-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.docanalyzer-results-header h3 {
+  margin: 0.1rem 0 0;
+  font-size: 1.15rem;
+  color: #0f162b;
+}
+
+.docanalyzer-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0 0 0.35rem;
+}
+
+.docanalyzer-results-body {
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.docanalyzer-summary p {
+  margin: 0;
+  line-height: 1.6;
+  color: #111827;
+}
+
+.docanalyzer-points ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #111827;
+  line-height: 1.6;
+}
+
+.docanalyzer-points li + li {
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 768px) {
+  .docanalyzer-card,
+  .docanalyzer-results {
+    padding: 1.1rem;
+  }
+
+  .docanalyzer-secondary-actions {
+    flex-direction: column;
+  }
+
+  .docanalyzer-secondary-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
