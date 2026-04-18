@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clipboard, ClipboardCheck, FileText, Link2, Share2, UploadCloud } from 'lucide-react';
+import { Clipboard, ClipboardCheck, FileText, Link2, Loader2, Share2, UploadCloud } from 'lucide-react';
 import './DocAnalyzerApp.css';
 import { analyzeDocument } from '@/services/openai';
 
@@ -41,6 +41,9 @@ const DocAnalyzerApp = () => {
   const currentFileRef = useRef(null);
 
   const wordCount = useMemo(() => rawContent.trim().split(/\s+/).filter(Boolean).length, [rawContent]);
+  const analysisReady = Boolean(analysis.summary || analysis.keyPoints.length > 0);
+  const fileState = fileName ? 'Loaded' : 'Waiting';
+  const previewLabel = rawContent ? 'Preview extracted' : 'No preview yet';
 
   const handleFile = (file) => {
     setError('');
@@ -145,23 +148,66 @@ const DocAnalyzerApp = () => {
         <label className="docanalyzer-upload">
           <input
             type="file"
-            accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp"
+            accept=".txt,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp,.md"
             onChange={(e) => handleFile(e.target.files?.[0])}
           />
           <UploadCloud size={20} />
-          <span>{fileName || 'Choose a file (txt, pdf, docx, png, jpg, gif, webp)'}</span>
+          <span>{fileName || 'Choose a file (txt, pdf, docx, png, jpg, gif, webp, md)'}</span>
         </label>
         {fileType && <p className="docanalyzer-hint">Detected type: {fileType}</p>}
         {error && <p className="docanalyzer-error">{error}</p>}
 
-        <div className="docanalyzer-preview">
-          <div className="docanalyzer-preview-header">
-            <span>Extracted content</span>
-            <span className="docanalyzer-count">{wordCount} words</span>
+        <div className="docanalyzer-meta">
+          <div className="docanalyzer-meta-card">
+            <span>Document</span>
+            <strong>{fileState}</strong>
           </div>
-          <div className="docanalyzer-preview-body">
-            {rawContent ? rawContent.slice(0, 1200) : 'Upload a document to preview its contents here.'}
+          <div className="docanalyzer-meta-card">
+            <span>Preview</span>
+            <strong>{previewLabel}</strong>
           </div>
+          <div className="docanalyzer-meta-card">
+            <span>Words</span>
+            <strong>{wordCount}</strong>
+          </div>
+        </div>
+
+        <div className="docanalyzer-main-grid">
+          <div className="docanalyzer-preview">
+            <div className="docanalyzer-preview-header">
+              <div>
+                <p className="docanalyzer-kicker">Research preview</p>
+                <span>Extracted content</span>
+              </div>
+              <span className="docanalyzer-count">{wordCount} words</span>
+            </div>
+            <div className="docanalyzer-preview-body">
+              {rawContent ? rawContent.slice(0, 1200) : 'Upload a document to preview its contents here.'}
+            </div>
+          </div>
+
+          <aside className="docanalyzer-sidecar">
+            <section className="docanalyzer-sidepanel">
+              <span className="docanalyzer-kicker">// DESK STATUS</span>
+              <strong>{analysisReady ? 'Insights ready' : isAnalyzing ? 'Reading document' : 'Ready to analyze'}</strong>
+              <p>
+                {isAnalyzing
+                  ? 'The model is extracting structure, summarizing content, and collecting key takeaways.'
+                  : analysisReady
+                    ? 'Summary notes are available below. You can copy or share the current insight set.'
+                    : 'Upload a document, inspect the preview, then run analysis when the source looks right.'}
+              </p>
+            </section>
+
+            <section className="docanalyzer-sidepanel">
+              <span className="docanalyzer-kicker">// SUPPORTED INPUTS</span>
+              <ul className="docanalyzer-sidepanel-list">
+                <li>Text, markdown, PDF, and Word documents.</li>
+                <li>Image-based uploads when text needs to be inferred.</li>
+                <li>Quick preview first, then AI summary and key-point extraction.</li>
+              </ul>
+            </section>
+          </aside>
         </div>
 
         <div className="docanalyzer-actions">
@@ -170,7 +216,17 @@ const DocAnalyzerApp = () => {
             onClick={handleAnalyze}
             disabled={isAnalyzing || !rawContent}
           >
-            {isAnalyzing ? 'Analyzing...' : 'Analyze document'}
+            {isAnalyzing ? (
+              <>
+                <Loader2 size={18} className="spinning" />
+                <span>Analyzing document...</span>
+              </>
+            ) : (
+              <>
+                <Link2 size={18} />
+                <span>Analyze document</span>
+              </>
+            )}
           </button>
           <div className="docanalyzer-secondary-actions">
             <button onClick={copyAnalysis} disabled={!analysis.summary}>
