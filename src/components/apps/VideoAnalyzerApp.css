@@ -992,6 +992,21 @@
   font-weight: 700;
 }
 
+.vidanalyzer-clip-player {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: oklch(0.18 0.01 260 / 0.9);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.03);
+}
+
+.vidanalyzer-clip-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: oklch(0.14 0.01 260);
+}
+
 .vidanalyzer-content-block {
   position: relative;
 }

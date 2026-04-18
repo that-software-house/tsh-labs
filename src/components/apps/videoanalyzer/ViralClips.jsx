@@ -82,6 +82,20 @@ const ViralClips = ({ clips, warnings = [] }) => {
                 </div>
               )}
 
+              {clip.download?.base64 && (
+                <div className="vidanalyzer-clip-player">
+                  <video
+                    className="vidanalyzer-clip-video"
+                    src={clip.download.base64}
+                    controls
+                    preload="metadata"
+                    playsInline
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
+
               <button
                 type="button"
                 className="vidanalyzer-download-btn"
