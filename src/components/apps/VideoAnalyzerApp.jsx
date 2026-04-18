@@ -327,22 +327,39 @@ const VideoAnalyzerApp = () => {
           <div className="vidanalyzer-control-main">
             <section className="vidanalyzer-section">
               <div className="vidanalyzer-section-head">
+                <span className="vidanalyzer-section-label">Source</span>
+                <p>Upload a local file for full extraction or paste a direct link / YouTube URL.</p>
+              </div>
+
+              <VideoInput onVideoSelect={handleVideoSelect} disabled={isBusy} />
+            </section>
+
+            <section className="vidanalyzer-section">
+              <div className="vidanalyzer-section-head">
                 <span className="vidanalyzer-section-label">Workflow</span>
-                <p>Route the source through a manual frame review pass or automatic clip scoring.</p>
+                <p>
+                  {videoSource
+                    ? 'Choose how to process the current source: review extracted frames or generate ranked clip candidates.'
+                    : 'Pick a source first, then choose whether to extract reviewable frames or generate ranked clip candidates.'}
+                </p>
               </div>
 
               <div className="vidanalyzer-workflows" role="radiogroup" aria-label="Video analyzer workflow">
                 <button
                   type="button"
                   className={`vidanalyzer-workflow ${isFramesWorkflow ? 'active' : ''}`}
-                  onClick={() => handleWorkflowChange(WORKFLOW_FRAMES)}
-                  disabled={isBusy}
+                  onClick={() => videoSource && handleWorkflowChange(WORKFLOW_FRAMES)}
+                  disabled={isBusy || !videoSource}
                 >
                   <span className="vidanalyzer-workflow-head">
                     <Clapperboard size={16} />
                     <span>Generate Frames</span>
                   </span>
-                  <small>Choose frame count and quality, then analyze only the frames you keep.</small>
+                  <small>
+                    {videoSource
+                      ? 'Choose frame count and quality, then analyze only the frames you keep.'
+                      : 'Select a source first to unlock the frame extraction workflow.'}
+                  </small>
                 </button>
 
                 <button
@@ -356,21 +373,14 @@ const VideoAnalyzerApp = () => {
                     <span>Generate Viral Clips</span>
                   </span>
                   <small>
-                    {canUseViralWorkflow
-                      ? 'Automatically score one frame per second and return up to 3 ranked clip candidates.'
-                      : 'Available only for uploaded files. Disabled for YouTube and linked video URLs.'}
+                    {!videoSource
+                      ? 'Select and upload a source first to unlock clip generation.'
+                      : canUseViralWorkflow
+                        ? 'Automatically score one frame per second and return up to 3 ranked clip candidates.'
+                        : 'Available only for uploaded files. Disabled for YouTube and linked video URLs.'}
                   </small>
                 </button>
               </div>
-            </section>
-
-            <section className="vidanalyzer-section">
-              <div className="vidanalyzer-section-head">
-                <span className="vidanalyzer-section-label">Source</span>
-                <p>Upload a local file for full extraction or paste a direct link / YouTube URL.</p>
-              </div>
-
-              <VideoInput onVideoSelect={handleVideoSelect} disabled={isBusy} />
             </section>
 
             {(showFrameControls || (isFramesWorkflow && videoSource?.type === 'youtube') || (isViralWorkflow && isUploadedFile)) && (

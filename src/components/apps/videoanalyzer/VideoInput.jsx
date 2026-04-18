@@ -83,18 +83,27 @@ const VideoInput = ({ onVideoSelect, disabled }) => {
     onVideoSelect(null);
   };
 
+  const activateFileTab = () => {
+    setActiveTab('file');
+    if (!disabled) {
+      requestAnimationFrame(() => fileInputRef.current?.click());
+    }
+  };
+
   return (
     <div className="vidanalyzer-input">
       <div className="vidanalyzer-tabs">
         <button
+          type="button"
           className={`vidanalyzer-tab ${activeTab === 'file' ? 'active' : ''}`}
-          onClick={() => setActiveTab('file')}
+          onClick={activateFileTab}
           disabled={disabled}
         >
           <Upload size={14} />
           Upload File
         </button>
         <button
+          type="button"
           className={`vidanalyzer-tab ${activeTab === 'url' ? 'active' : ''}`}
           onClick={() => setActiveTab('url')}
           disabled={disabled}
