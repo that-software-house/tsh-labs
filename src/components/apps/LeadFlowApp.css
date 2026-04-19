@@ -1,256 +1,316 @@
 .leadflow-app {
-  background: linear-gradient(to bottom right, #eff6ff, #f0fdf4, #faf5ff);
-  min-height: 600px;
+  --leadflow-bg: #0f1215;
+  --leadflow-surface: rgba(21, 26, 30, 0.92);
+  --leadflow-surface-soft: rgba(31, 39, 44, 0.76);
+  --leadflow-surface-strong: #171d21;
+  --leadflow-border: rgba(180, 194, 170, 0.14);
+  --leadflow-border-strong: rgba(212, 245, 66, 0.28);
+  --leadflow-copy: #edf0e8;
+  --leadflow-muted: rgba(219, 225, 214, 0.72);
+  --leadflow-dim: rgba(219, 225, 214, 0.5);
+  --leadflow-accent: #d4f542;
   position: relative;
   overflow: hidden;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  color: var(--leadflow-copy);
 }
 
 .leadflow-app::before {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 384px;
-  height: 384px;
-  background: rgba(59, 130, 246, 0.08);
-  border-radius: 50%;
-  filter: blur(80px);
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 82%);
   pointer-events: none;
 }
 
 .leadflow-app::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 384px;
-  height: 384px;
-  background: rgba(16, 185, 129, 0.08);
+  left: -120px;
+  bottom: -140px;
+  width: 360px;
+  height: 360px;
   border-radius: 50%;
-  filter: blur(80px);
+  background: radial-gradient(circle, rgba(212, 245, 66, 0.09), transparent 72%);
+  filter: blur(18px);
   pointer-events: none;
 }
 
-/* Header */
-.leadflow-header {
-  text-align: center;
-  padding: 40px 24px 20px;
+.leadflow-hero,
+.leadflow-desk,
+.leadflow-tryit,
+.leadflow-error {
   position: relative;
   z-index: 1;
 }
 
-.leadflow-badge {
+.leadflow-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.leadflow-hero__copy,
+.leadflow-hero__sidecar,
+.leadflow-feed,
+.leadflow-pipeline,
+.leadflow-tryit-input-area,
+.leadflow-result-card,
+.leadflow-user-pipeline,
+.leadflow-kanban-col {
+  border: 1px solid var(--leadflow-border);
+  background: var(--leadflow-surface);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.leadflow-hero__copy,
+.leadflow-hero__sidecar,
+.leadflow-feed,
+.leadflow-pipeline,
+.leadflow-tryit-input-area,
+.leadflow-result-card,
+.leadflow-user-pipeline {
+  border-radius: 28px;
+  padding: 24px;
+}
+
+.leadflow-kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  font-size: 14px;
-  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  width: fit-content;
+  border: 1px solid var(--leadflow-border-strong);
+  color: var(--leadflow-accent);
+  background: rgba(11, 14, 12, 0.4);
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .leadflow-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 12px 0;
+  margin: 18px 0 10px;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  color: #f5f4ed;
+}
+
+.leadflow-header p,
+.leadflow-section-head p,
+.leadflow-feed-intent,
+.leadflow-detail-raw p,
+.leadflow-error span {
+  color: var(--leadflow-muted);
 }
 
 .leadflow-header p {
-  font-size: 16px;
-  color: #6b7280;
-  max-width: 500px;
-  margin: 0 auto;
-  line-height: 1.6;
+  margin: 0;
+  max-width: 56ch;
+  line-height: 1.7;
 }
 
-/* Tabs */
 .leadflow-tabs {
   display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.leadflow-tab,
+.leadflow-source-btn,
+.leadflow-btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 24px 24px;
-  position: relative;
-  z-index: 1;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, opacity 180ms ease;
 }
 
 .leadflow-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  border: 2px solid rgba(0, 0, 0, 0.08);
-  background: white;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.leadflow-tab:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+  color: var(--leadflow-muted);
 }
 
 .leadflow-tab.active {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-  color: #2563eb;
+  border-color: var(--leadflow-border-strong);
+  background: rgba(212, 245, 66, 0.09);
+  color: #edf5d0;
 }
 
-/* Stats Bar */
-.leadflow-stats-bar {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  padding: 16px 24px;
-  margin: 0 24px 20px;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  position: relative;
-  z-index: 1;
+.leadflow-tab:hover:not(:disabled),
+.leadflow-source-btn:hover:not(:disabled),
+.leadflow-btn:hover:not(:disabled),
+.leadflow-feed-card:hover,
+.leadflow-kanban-card:hover {
+  transform: translateY(-1px);
 }
 
-.leadflow-stats-bar-compact {
-  margin: 0;
-  padding: 8px 16px;
-  gap: 20px;
+.leadflow-hero__sidecar {
+  display: grid;
+  gap: 16px;
+  align-content: start;
 }
 
+.leadflow-stat-block,
 .leadflow-stat {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #6b7280;
+  gap: 10px;
+}
+
+.leadflow-stat-block {
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.leadflow-stat-block span,
+.leadflow-stat-label,
+.leadflow-detail-label,
+.leadflow-result-label,
+.leadflow-source-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--leadflow-dim);
+}
+
+.leadflow-stat-block strong,
+.leadflow-stat-value {
+  color: #f2f3eb;
+}
+
+.leadflow-stats-bar {
+  display: grid;
+  gap: 12px;
+}
+
+.leadflow-stat {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.leadflow-stat > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .leadflow-stat-value {
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #111827;
-  font-size: 18px;
 }
 
 .leadflow-stat-label {
-  font-size: 13px;
-  color: #9ca3af;
+  font-size: 0.66rem;
 }
 
-/* Demo Layout */
-.leadflow-demo {
-  position: relative;
-  z-index: 1;
-}
-
-.leadflow-demo-layout {
+.leadflow-desk {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
   gap: 20px;
-  padding: 0 24px 40px;
-  max-width: 1200px;
-  margin: 0 auto;
+}
+
+.leadflow-section-head,
+.leadflow-user-pipeline-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 14px;
 }
 
 .leadflow-section-title {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 12px 0;
-}
-
-/* Feed */
-.leadflow-feed {
-  min-width: 0;
+  margin: 0;
+  font-size: 1.08rem;
+  color: #f0f1ea;
 }
 
 .leadflow-feed-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 500px;
+  gap: 10px;
+  max-height: 540px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.leadflow-feed-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.leadflow-feed-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.leadflow-feed-list::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
+.leadflow-processing,
+.leadflow-feed-card,
+.leadflow-kanban-card,
+.leadflow-result-field {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .leadflow-processing {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #fef3c7, #fef9c3);
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #92400e;
-  overflow: hidden;
+  padding: 14px 16px;
+  background: rgba(212, 245, 66, 0.1);
+  color: #edf5d0;
 }
 
-.leadflow-sparkle-spin {
-  animation: sparkle-pulse 1s ease-in-out infinite;
-}
-
-@keyframes sparkle-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
+.leadflow-sparkle-spin,
+.leadflow-spinner {
+  animation: leadflow-spin 1s linear infinite;
 }
 
 .leadflow-feed-card {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  padding: 12px 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.leadflow-feed-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
 .leadflow-feed-card.selected {
-  border-color: #3b82f6;
-  background: #f8faff;
+  border-color: var(--leadflow-border-strong);
+  background: linear-gradient(180deg, rgba(212, 245, 66, 0.08), rgba(255, 255, 255, 0.04));
 }
 
-.leadflow-feed-card-row {
+.leadflow-feed-card-row,
+.leadflow-result-field {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.leadflow-feed-icon,
+.leadflow-result-header {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .leadflow-feed-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #eef4da;
 }
 
 .leadflow-feed-info {
@@ -258,68 +318,37 @@
   min-width: 0;
 }
 
-.leadflow-feed-name {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.leadflow-feed-name,
+.leadflow-kanban-card-name,
+.leadflow-result-value {
+  color: #f4f5ef;
 }
 
-.leadflow-feed-company {
+.leadflow-feed-name,
+.leadflow-kanban-card-name {
   display: block;
-  font-size: 12px;
-  color: #6b7280;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.leadflow-feed-company,
+.leadflow-kanban-card-company {
+  display: block;
+  margin-top: 3px;
+  color: var(--leadflow-dim);
+  font-size: 0.84rem;
 }
 
 .leadflow-urgency-dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.leadflow-feed-intent {
-  font-size: 12px;
-  color: #6b7280;
-  margin: 6px 0 0;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Feed detail expand */
 .leadflow-feed-detail {
-  overflow: hidden;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.leadflow-detail-raw {
-  margin-bottom: 10px;
-}
-
-.leadflow-detail-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.leadflow-detail-raw p {
-  font-size: 13px;
-  color: #374151;
-  line-height: 1.5;
-  margin: 4px 0 0;
-  font-style: italic;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .leadflow-detail-fields {
@@ -331,74 +360,63 @@
 .leadflow-detail-field {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #6b7280;
-  background: #f9fafb;
-  padding: 4px 10px;
-  border-radius: 8px;
-}
-
-/* Kanban Pipeline */
-.leadflow-pipeline {
-  min-width: 0;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--leadflow-muted);
+  font-size: 0.8rem;
 }
 
 .leadflow-kanban {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
 .leadflow-kanban-col {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 12px;
-  min-height: 200px;
-  transition: background 0.2s ease;
+  min-height: 240px;
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .leadflow-kanban-col.drag-over {
-  background: #eff6ff;
-  outline: 2px dashed #3b82f6;
-  outline-offset: -2px;
+  border-color: var(--leadflow-border-strong);
+  background: rgba(212, 245, 66, 0.08);
 }
 
 .leadflow-kanban-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
+  gap: 8px;
   padding-bottom: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border-bottom: 2px solid;
+  color: #f0f1ea;
+  font-weight: 700;
 }
 
 .leadflow-kanban-count {
   margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-  background: white;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  color: #6b7280;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--leadflow-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .leadflow-kanban-cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .leadflow-kanban-card {
-  background: white;
-  border-radius: 10px;
-  padding: 10px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .leadflow-kanban-card.draggable {
@@ -409,169 +427,163 @@
   cursor: grabbing;
 }
 
-.leadflow-kanban-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-}
-
 .leadflow-grip {
-  color: #d1d5db;
+  color: rgba(255, 255, 255, 0.22);
   margin-bottom: 4px;
-}
-
-.leadflow-kanban-card-name {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.leadflow-kanban-card-company {
-  display: block;
-  font-size: 11px;
-  color: #6b7280;
-  margin-top: 2px;
 }
 
 .leadflow-kanban-card-deal {
   display: inline-block;
-  font-size: 11px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(127, 210, 146, 0.14);
+  color: #d6f7db;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #059669;
-  background: #ecfdf5;
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-top: 6px;
 }
 
-/* Try It Tab */
 .leadflow-tryit {
-  padding: 0 24px 40px;
-  max-width: 800px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
-.leadflow-tryit-input-area {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  padding: 24px;
+  display: grid;
+  gap: 18px;
 }
 
 .leadflow-source-selector {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
-}
-
-.leadflow-source-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  margin-right: 4px;
+  margin-bottom: 14px;
 }
 
 .leadflow-source-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 2px solid rgba(0, 0, 0, 0.08);
-  background: white;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.leadflow-source-btn:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
+  min-height: 40px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--leadflow-muted);
 }
 
 .leadflow-source-btn.active {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  color: #2563eb;
+  border-color: var(--leadflow-border-strong);
+  background: rgba(212, 245, 66, 0.09);
+  color: #eff5d3;
 }
 
 .leadflow-textarea {
   width: 100%;
-  min-height: 160px;
+  min-height: 180px;
   padding: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.6;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--leadflow-surface-strong);
+  color: #eff0e9;
+  font: inherit;
+  line-height: 1.65;
   resize: vertical;
-  font-family: inherit;
-  background: #fafafa;
-  color: #1f2937;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .leadflow-textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: rgba(212, 245, 66, 0.3);
+  box-shadow: 0 0 0 4px rgba(212, 245, 66, 0.07);
 }
 
 .leadflow-textarea::placeholder {
-  color: #9ca3af;
+  color: rgba(219, 225, 214, 0.34);
 }
 
-/* Buttons */
 .leadflow-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   width: 100%;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .leadflow-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 .leadflow-btn-primary {
-  background: #f4ad0d;
-  color: #0f162b;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  box-shadow: 0 14px 30px rgba(244, 173, 13, 0.28);
+  background: linear-gradient(135deg, #d4f542 0%, #bddb2a 100%);
+  color: #10150d;
 }
 
-.leadflow-btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 36px rgba(244, 173, 13, 0.34);
+.leadflow-result-header {
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #e5f0b0;
+  font-size: 0.86rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-.leadflow-btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 10px 22px rgba(244, 173, 13, 0.22);
+.leadflow-result-fields {
+  display: grid;
+  gap: 10px;
 }
 
-.leadflow-btn-primary:disabled {
-  box-shadow: none;
+.leadflow-result-field {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--leadflow-muted);
 }
 
-.leadflow-spinner {
-  animation: leadflow-spin 1s linear infinite;
+.leadflow-result-label {
+  min-width: 72px;
+}
+
+.leadflow-urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.leadflow-user-pipeline {
+  display: grid;
+  gap: 14px;
+}
+
+.leadflow-stats-bar-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leadflow-stats-bar-compact .leadflow-stat {
+  padding: 10px 12px;
+}
+
+.leadflow-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(95, 27, 27, 0.42);
+  border: 1px solid rgba(255, 128, 128, 0.22);
+  color: #ffcaca;
+}
+
+.leadflow-error button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.leadflow-error button:hover {
+  opacity: 1;
 }
 
 @keyframes leadflow-spin {
@@ -579,200 +591,53 @@
   to { transform: rotate(360deg); }
 }
 
-/* Result Card */
-.leadflow-result-card {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  padding: 24px;
-  margin-top: 20px;
-}
-
-.leadflow-result-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #059669;
-  margin-bottom: 16px;
-}
-
-.leadflow-result-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.leadflow-result-field {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #6b7280;
-}
-
-.leadflow-result-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #9ca3af;
-  min-width: 70px;
-}
-
-.leadflow-result-value {
-  font-size: 14px;
-  color: #111827;
-  font-weight: 500;
-}
-
-.leadflow-urgency-badge {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 8px;
-}
-
-/* User Pipeline */
-.leadflow-user-pipeline {
-  margin-top: 32px;
-}
-
-.leadflow-user-pipeline-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-/* Error */
-.leadflow-error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 12px 16px;
-  border-radius: 12px;
-  margin: 0 24px 24px;
-  max-width: 752px;
-  margin-left: auto;
-  margin-right: auto;
-  position: relative;
-  z-index: 1;
-}
-
-.leadflow-error span {
-  font-size: 14px;
-}
-
-.leadflow-error button {
-  background: none;
-  border: none;
-  color: #dc2626;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.leadflow-error button:hover {
-  opacity: 1;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .leadflow-demo-layout {
+@media (max-width: 1180px) {
+  .leadflow-hero,
+  .leadflow-desk {
     grid-template-columns: 1fr;
   }
 
   .leadflow-kanban {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .leadflow-feed-list {
-    max-height: 300px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
-  .leadflow-header {
-    padding: 24px 16px 16px;
+@media (max-width: 760px) {
+  .leadflow-hero__copy,
+  .leadflow-hero__sidecar,
+  .leadflow-feed,
+  .leadflow-pipeline,
+  .leadflow-tryit-input-area,
+  .leadflow-result-card,
+  .leadflow-user-pipeline {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .leadflow-section-head,
+  .leadflow-user-pipeline-header,
+  .leadflow-tabs {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .leadflow-tabs,
+  .leadflow-stats-bar-compact {
+    width: 100%;
+  }
+
+  .leadflow-tab,
+  .leadflow-source-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .leadflow-kanban {
+    grid-template-columns: 1fr;
   }
 
   .leadflow-header h1 {
-    font-size: 22px;
-  }
-
-  .leadflow-header p {
-    font-size: 14px;
-  }
-
-  .leadflow-tabs {
-    padding: 0 16px 16px;
-  }
-
-  .leadflow-tab {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-
-  .leadflow-stats-bar {
-    margin: 0 16px 16px;
-    gap: 20px;
-    padding: 12px 16px;
-  }
-
-  .leadflow-stat-value {
-    font-size: 16px;
-  }
-
-  .leadflow-demo-layout {
-    padding: 0 16px 32px;
-  }
-
-  .leadflow-kanban {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .leadflow-kanban-col {
-    padding: 8px;
-    min-height: 120px;
-  }
-
-  .leadflow-kanban-header {
-    font-size: 11px;
-  }
-
-  .leadflow-kanban-card {
-    padding: 8px;
-  }
-
-  .leadflow-kanban-card-name {
-    font-size: 12px;
-  }
-
-  .leadflow-tryit {
-    padding: 0 16px 32px;
-  }
-
-  .leadflow-tryit-input-area {
-    padding: 16px;
-  }
-
-  .leadflow-source-selector {
-    flex-wrap: wrap;
-  }
-
-  .leadflow-textarea {
-    min-height: 120px;
-  }
-
-  .leadflow-result-card {
-    padding: 16px;
+    font-size: 2.4rem;
   }
 }

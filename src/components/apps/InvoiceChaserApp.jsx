@@ -60,7 +60,7 @@ function formatDateLabel(dateInput) {
   }
 }
 
-const InvoiceChaserApp = () => {
+export default function InvoiceChaserApp() {
   const { isAuthenticated } = useAuth();
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
@@ -93,6 +93,14 @@ const InvoiceChaserApp = () => {
   );
 
   const currentDraft = editedDrafts?.[activeTone] || null;
+  const summaryCards = summary
+    ? [
+        ['Total overdue', String(summary.totalOverdueInvoices || 0)],
+        ['High risk', String(summary.totalsByTier?.high || 0)],
+        ['Medium risk', String(summary.totalsByTier?.medium || 0)],
+        ['Value at risk', formatMoney(summary.totalAmountDue || 0)],
+      ]
+    : [];
 
   const handleFileSelect = (selectedFile) => {
     setError('');
@@ -151,7 +159,6 @@ const InvoiceChaserApp = () => {
         const message = err?.message || 'Failed to load uploaded documents.';
         const isAuthValidationError = message === 'Sign in to view your uploaded invoice documents';
 
-        // Supabase session can briefly lag right after sign-in; retry once.
         if (isAuthValidationError) {
           try {
             await new Promise((resolve) => setTimeout(resolve, 450));
@@ -455,63 +462,118 @@ const InvoiceChaserApp = () => {
 
   return (
     <div className="invoicechaser-app">
-      <header className="invoicechaser-header">
-        <div className="invoicechaser-icon">
-          <FileSpreadsheet size={22} />
-        </div>
-        <div>
-          <h2>InvoiceChaser</h2>
-          <p>Upload invoice exports, prioritize overdue accounts, and send AI-assisted follow-ups.</p>
-        </div>
-      </header>
+      <header className="invoicechaser-hero">
+        <div className="invoicechaser-hero__main">
+          <div className="invoicechaser-kicker">
+            <Sparkles size={14} />
+            <span>Finance ops desk</span>
+          </div>
 
-      <section className="invoicechaser-upload-card">
-        <label className={`invoicechaser-upload ${!isAuthenticated ? 'disabled' : ''}`} onClick={handleUploadClick}>
-          <input
-            type="file"
-            accept=".csv,.json,.xlsx,.xls,.pdf,application/pdf"
-            onChange={(event) => handleFileSelect(event.target.files?.[0])}
-            disabled={isUploading || !isAuthenticated}
-          />
-          <Sparkles size={16} />
-          <span>{fileName || 'Upload invoice export (CSV, JSON, Excel, PDF)'}</span>
-        </label>
+          <div className="invoicechaser-header">
+            <div className="invoicechaser-icon">
+              <FileSpreadsheet size={22} />
+            </div>
+            <div>
+              <h2>Invoice Chaser</h2>
+              <p>Upload invoice exports, rank overdue accounts, and work each follow-up from one calmer collections surface.</p>
+            </div>
+          </div>
 
-        <div className="invoicechaser-upload-actions">
-          <button
-            className="invoicechaser-primary-btn"
-            onClick={handleAnalyze}
-            disabled={isUploading || !file}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 size={16} className="spinning" />
-                Building queue...
-              </>
-            ) : (
-              <>
-                <Sparkles size={16} />
-                Build Overdue Queue
-              </>
+          <section className="invoicechaser-upload-card">
+            <div className="invoicechaser-panel-header">
+              <div>
+                <h3>Queue intake</h3>
+                <p>CSV, JSON, Excel, or PDF export. Auth is only required for uploads and saved history.</p>
+              </div>
+              <span>{isAuthenticated ? 'signed in' : 'auth required'}</span>
+            </div>
+
+            <label className={`invoicechaser-upload ${!isAuthenticated ? 'disabled' : ''}`} onClick={handleUploadClick}>
+              <input
+                type="file"
+                accept=".csv,.json,.xlsx,.xls,.pdf,application/pdf"
+                onChange={(event) => handleFileSelect(event.target.files?.[0])}
+                disabled={isUploading || !isAuthenticated}
+              />
+              <Sparkles size={16} />
+              <span>{fileName || 'Upload invoice export (CSV, JSON, Excel, PDF)'}</span>
+            </label>
+
+            <div className="invoicechaser-upload-actions">
+              <button
+                className="invoicechaser-primary-btn"
+                onClick={handleAnalyze}
+                disabled={isUploading || !file}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 size={16} className="spinning" />
+                    Building queue...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} />
+                    Build overdue queue
+                  </>
+                )}
+              </button>
+
+              <button
+                className="invoicechaser-secondary-btn"
+                onClick={refreshQueue}
+                disabled={!queueId || isRefreshingQueue || isUploading}
+              >
+                {isRefreshingQueue ? <Loader2 size={16} className="spinning" /> : <RefreshCw size={16} />}
+                Refresh priority
+              </button>
+            </div>
+
+            {queueId && (
+              <p className="invoicechaser-meta">
+                Queue ID: <code>{queueId}</code>
+              </p>
             )}
-          </button>
-
-          <button
-            className="invoicechaser-secondary-btn"
-            onClick={refreshQueue}
-            disabled={!queueId || isRefreshingQueue || isUploading}
-          >
-            {isRefreshingQueue ? <Loader2 size={16} className="spinning" /> : <RefreshCw size={16} />}
-            Refresh Priority
-          </button>
+          </section>
         </div>
 
-        {queueId && (
-          <p className="invoicechaser-meta">
-            Queue ID: <code>{queueId}</code>
-          </p>
-        )}
-      </section>
+        <aside className="invoicechaser-hero__sidecar">
+          <section className="invoicechaser-side-panel">
+            <div className="invoicechaser-panel-header">
+              <div>
+                <h3>Desk status</h3>
+                <p>Current operating mode for this queue.</p>
+              </div>
+              <span>{queue.length > 0 ? 'live queue' : 'waiting'}</span>
+            </div>
+
+            <div className="invoicechaser-hero-metrics">
+              <div>
+                <span>Source</span>
+                <strong>{fileName || 'No file loaded'}</strong>
+              </div>
+              <div>
+                <span>Queue</span>
+                <strong>{queue.length > 0 ? `${queue.length} invoices` : 'Not generated'}</strong>
+              </div>
+              <div>
+                <span>Drafts</span>
+                <strong>{drafts ? 'Ready' : 'Waiting'}</strong>
+              </div>
+            </div>
+          </section>
+
+          {summaryCards.length > 0 && (
+            <section className="invoicechaser-summary-grid">
+              {summaryCards.map(([label, value]) => (
+                <article key={label}>
+                  <p>{label}</p>
+                  <h3>{value}</h3>
+                </article>
+              ))}
+            </section>
+          )}
+        </aside>
+      </header>
 
       {(error || success) && (
         <div className="invoicechaser-notices">
@@ -530,33 +592,15 @@ const InvoiceChaserApp = () => {
         </div>
       )}
 
-      {summary && (
-        <section className="invoicechaser-summary-grid">
-          <article>
-            <p>Total Overdue</p>
-            <h3>{summary.totalOverdueInvoices || 0}</h3>
-          </article>
-          <article>
-            <p>High Risk</p>
-            <h3>{summary.totalsByTier?.high || 0}</h3>
-          </article>
-          <article>
-            <p>Medium Risk</p>
-            <h3>{summary.totalsByTier?.medium || 0}</h3>
-          </article>
-          <article>
-            <p>Total Due</p>
-            <h3>{formatMoney(summary.totalAmountDue || 0)}</h3>
-          </article>
-        </section>
-      )}
-
       <section className="invoicechaser-main-grid">
         <div className="invoicechaser-side-stack">
           {isAuthenticated && (
             <aside className="invoicechaser-documents-panel">
               <div className="invoicechaser-panel-header">
-                <h3>Uploaded Documents</h3>
+                <div>
+                  <h3>Saved documents</h3>
+                  <p>Reopen previous uploads and continue from the stored queue state.</p>
+                </div>
                 <span>{documents.length} files</span>
               </div>
 
@@ -603,9 +647,41 @@ const InvoiceChaserApp = () => {
             </aside>
           )}
 
+          {recentActions.length > 0 && (
+            <section className="invoicechaser-log-panel">
+              <div className="invoicechaser-panel-header">
+                <div>
+                  <h3>Recent activity</h3>
+                  <p>Latest queue actions and follow-up updates.</p>
+                </div>
+                <span>{recentActions.length} events</span>
+              </div>
+
+              <div className="invoicechaser-log-list">
+                {recentActions.slice(0, 10).map((action) => (
+                  <div key={action.id} className="invoicechaser-log-item">
+                    <div>
+                      <strong>{action.invoiceId}</strong>
+                      <p>
+                        {action.actionType.replaceAll('_', ' ')}
+                        {action.tone ? ` • ${action.tone}` : ''}
+                      </p>
+                    </div>
+                    <time>{new Date(action.timestamp).toLocaleString()}</time>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <div className="invoicechaser-workspace">
           <aside className="invoicechaser-queue-panel">
             <div className="invoicechaser-panel-header">
-              <h3>Overdue Queue</h3>
+              <div>
+                <h3>Prioritized queue</h3>
+                <p>Review the most urgent accounts first and open the draft workspace per invoice.</p>
+              </div>
               <span>{queue.length} invoices</span>
             </div>
 
@@ -638,138 +714,114 @@ const InvoiceChaserApp = () => {
               </div>
             )}
           </aside>
-        </div>
 
-        <div className="invoicechaser-draft-panel">
-          {isLoadingDocumentDetails && (
-            <div className="invoicechaser-loading">
-              <Loader2 size={18} className="spinning" />
-              <span>Loading document details...</span>
-            </div>
-          )}
-
-          {!isLoadingDocumentDetails && !selectedInvoice && (
-            <p className="invoicechaser-empty">Select an invoice to generate follow-up drafts.</p>
-          )}
-
-          {selectedInvoice && (
-            <>
-              <div className="invoicechaser-panel-header">
-                <div>
-                  <h3>{selectedInvoice.invoiceId}</h3>
-                  <p>
-                    {selectedInvoice.customerName} • {selectedInvoice.customerEmail || 'No billing email'}
-                  </p>
-                </div>
-                <div className={`invoicechaser-risk-pill ${riskClassName(selectedInvoice.riskTier)}`}>
-                  {selectedInvoice.riskTier}
-                </div>
+          <div className="invoicechaser-draft-panel">
+            {isLoadingDocumentDetails && (
+              <div className="invoicechaser-loading">
+                <Loader2 size={18} className="spinning" />
+                <span>Loading document details...</span>
               </div>
+            )}
 
-              <div className="invoicechaser-invoice-meta">
-                <span>{selectedInvoice.daysOverdue} days overdue</span>
-                <span>{formatMoney(selectedInvoice.amountDue, selectedInvoice.currency)}</span>
-                <span>Priority {selectedInvoice.priorityScore}</span>
-              </div>
+            {!isLoadingDocumentDetails && !selectedInvoice && (
+              <p className="invoicechaser-empty">Select an invoice to generate follow-up drafts.</p>
+            )}
 
-              <p className="invoicechaser-next-action">Next action: {selectedInvoice.nextAction}</p>
-
-              {isGeneratingDrafts && (
-                <div className="invoicechaser-loading">
-                  <Loader2 size={18} className="spinning" />
-                  <span>Generating friendly, firm, and final drafts...</span>
+            {selectedInvoice && (
+              <>
+                <div className="invoicechaser-panel-header">
+                  <div>
+                    <h3>{selectedInvoice.invoiceId}</h3>
+                    <p>
+                      {selectedInvoice.customerName} • {selectedInvoice.customerEmail || 'No billing email'}
+                    </p>
+                  </div>
+                  <div className={`invoicechaser-risk-pill ${riskClassName(selectedInvoice.riskTier)}`}>
+                    {selectedInvoice.riskTier}
+                  </div>
                 </div>
-              )}
 
-              {!isGeneratingDrafts && drafts && (
-                <>
-                  <div className="invoicechaser-tone-tabs">
-                    {tones.map((tone) => (
+                <div className="invoicechaser-invoice-meta">
+                  <span>{selectedInvoice.daysOverdue} days overdue</span>
+                  <span>{formatMoney(selectedInvoice.amountDue, selectedInvoice.currency)}</span>
+                  <span>Priority {selectedInvoice.priorityScore}</span>
+                </div>
+
+                <p className="invoicechaser-next-action">Next action: {selectedInvoice.nextAction}</p>
+
+                {isGeneratingDrafts && (
+                  <div className="invoicechaser-loading">
+                    <Loader2 size={18} className="spinning" />
+                    <span>Generating friendly, firm, and final drafts...</span>
+                  </div>
+                )}
+
+                {!isGeneratingDrafts && drafts && (
+                  <>
+                    <div className="invoicechaser-tone-tabs">
+                      {tones.map((tone) => (
+                        <button
+                          key={tone}
+                          className={activeTone === tone ? 'active' : ''}
+                          onClick={() => setActiveTone(tone)}
+                        >
+                          {toneLabels[tone]}
+                        </button>
+                      ))}
+                    </div>
+
+                    <label className="invoicechaser-field">
+                      <span>Subject</span>
+                      <input
+                        type="text"
+                        value={currentDraft?.subject || ''}
+                        onChange={(event) => handleDraftChange(activeTone, 'subject', event.target.value)}
+                      />
+                    </label>
+
+                    <label className="invoicechaser-field">
+                      <span>Draft Body</span>
+                      <textarea
+                        rows={10}
+                        value={currentDraft?.body || ''}
+                        onChange={(event) => handleDraftChange(activeTone, 'body', event.target.value)}
+                      />
+                    </label>
+
+                    <div className="invoicechaser-draft-actions">
                       <button
-                        key={tone}
-                        className={activeTone === tone ? 'active' : ''}
-                        onClick={() => setActiveTone(tone)}
+                        className="invoicechaser-secondary-btn"
+                        onClick={handleCopyAndLog}
+                        disabled={isSavingAction}
                       >
-                        {toneLabels[tone]}
+                        {isSavingAction ? <Loader2 size={16} className="spinning" /> : <Clipboard size={16} />}
+                        Approve + copy
                       </button>
-                    ))}
-                  </div>
 
-                  <label className="invoicechaser-field">
-                    <span>Subject</span>
-                    <input
-                      type="text"
-                      value={currentDraft?.subject || ''}
-                      onChange={(event) => handleDraftChange(activeTone, 'subject', event.target.value)}
-                    />
-                  </label>
+                      <button
+                        className="invoicechaser-primary-btn"
+                        onClick={handleSendAndLog}
+                        disabled={isSavingAction}
+                      >
+                        {isSavingAction ? <Loader2 size={16} className="spinning" /> : <Mail size={16} />}
+                        Approve + send
+                      </button>
 
-                  <label className="invoicechaser-field">
-                    <span>Draft Body</span>
-                    <textarea
-                      rows={10}
-                      value={currentDraft?.body || ''}
-                      onChange={(event) => handleDraftChange(activeTone, 'body', event.target.value)}
-                    />
-                  </label>
-
-                  <div className="invoicechaser-draft-actions">
-                    <button
-                      className="invoicechaser-secondary-btn"
-                      onClick={handleCopyAndLog}
-                      disabled={isSavingAction}
-                    >
-                      {isSavingAction ? <Loader2 size={16} className="spinning" /> : <Clipboard size={16} />}
-                      Approve + Copy
-                    </button>
-
-                    <button
-                      className="invoicechaser-primary-btn"
-                      onClick={handleSendAndLog}
-                      disabled={isSavingAction}
-                    >
-                      {isSavingAction ? <Loader2 size={16} className="spinning" /> : <Mail size={16} />}
-                      Approve + Send
-                    </button>
-
-                    <button
-                      className="invoicechaser-mark-paid"
-                      onClick={handleMarkPaid}
-                      disabled={isSavingAction}
-                    >
-                      Mark Paid
-                    </button>
-                  </div>
-                </>
-              )}
-            </>
-          )}
+                      <button
+                        className="invoicechaser-mark-paid"
+                        onClick={handleMarkPaid}
+                        disabled={isSavingAction}
+                      >
+                        Mark paid
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </section>
-
-      {recentActions.length > 0 && (
-        <section className="invoicechaser-log-panel">
-          <div className="invoicechaser-panel-header">
-            <h3>Recent Activity</h3>
-            <span>{recentActions.length} events</span>
-          </div>
-
-          <div className="invoicechaser-log-list">
-            {recentActions.slice(0, 10).map((action) => (
-              <div key={action.id} className="invoicechaser-log-item">
-                <div>
-                  <strong>{action.invoiceId}</strong>
-                  <p>
-                    {action.actionType.replaceAll('_', ' ')}
-                    {action.tone ? ` • ${action.tone}` : ''}
-                  </p>
-                </div>
-                <time>{new Date(action.timestamp).toLocaleString()}</time>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {showSignInRequiredModal && (
         <div className="invoicechaser-gate-modal-overlay" onClick={() => setShowSignInRequiredModal(false)}>
@@ -794,6 +846,4 @@ const InvoiceChaserApp = () => {
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
-};
-
-export default InvoiceChaserApp;
+}

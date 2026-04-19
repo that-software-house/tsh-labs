@@ -2,7 +2,15 @@ import React, { useRef, useState } from 'react';
 import { Upload, Link, X, FileVideo } from 'lucide-react';
 
 const ACCEPTED_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const DEFAULT_MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const configuredMaxFileSize = Number.parseInt(import.meta.env.VITE_VIDEO_UPLOAD_MAX_BYTES || '', 10);
+const MAX_FILE_SIZE = Number.isFinite(configuredMaxFileSize) && configuredMaxFileSize > 0
+  ? configuredMaxFileSize
+  : DEFAULT_MAX_FILE_SIZE;
+
+function formatUploadLimit(bytes) {
+  return `${Math.round(bytes / (1024 * 1024))}MB`;
+}
 
 function isYouTubeUrl(url) {
   return /^https?:\/\/(www\.)?(youtube\.com\/watch\?|youtu\.be\/|youtube\.com\/shorts\/)/.test(url);
@@ -37,7 +45,7 @@ const VideoInput = ({ onVideoSelect, disabled }) => {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      onVideoSelect(null, 'File too large. Maximum size is 500MB.');
+      onVideoSelect(null, `File too large. Maximum size is ${formatUploadLimit(MAX_FILE_SIZE)}.`);
       return;
     }
 
@@ -142,7 +150,9 @@ const VideoInput = ({ onVideoSelect, disabled }) => {
                 <span className="vidanalyzer-upload-text">
                   {isDragging ? 'Drop your video here' : 'Drop video or click to upload'}
                 </span>
-                <p className="vidanalyzer-upload-hint">MP4, WebM, OGG, MOV up to 500MB</p>
+                <p className="vidanalyzer-upload-hint">
+                  MP4, WebM, OGG, MOV up to {formatUploadLimit(MAX_FILE_SIZE)}
+                </p>
               </>
             )}
           </div>

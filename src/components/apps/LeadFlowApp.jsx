@@ -1,9 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sparkles, Mail, MessageCircle, FileText, Users, TrendingUp,
-  Trophy, Target, RefreshCw, ArrowRight, Flame, Clock,
-  DollarSign, User, Building2, Phone, AtSign, Zap, GripVertical
+  Sparkles,
+  Mail,
+  MessageCircle,
+  FileText,
+  Users,
+  TrendingUp,
+  Trophy,
+  Target,
+  RefreshCw,
+  ArrowRight,
+  Flame,
+  DollarSign,
+  User,
+  Building2,
+  Phone,
+  AtSign,
+  Zap,
+  GripVertical,
 } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
 import { useAuth } from '@/context/AuthContext';
@@ -13,10 +28,10 @@ import { supabase } from '@/lib/supabase';
 import './LeadFlowApp.css';
 
 const STAGES = [
-  { id: 'new', label: 'New', icon: Target, color: '#3b82f6' },
-  { id: 'qualified', label: 'Qualified', icon: TrendingUp, color: '#8b5cf6' },
-  { id: 'proposal', label: 'Proposal', icon: FileText, color: '#f59e0b' },
-  { id: 'won', label: 'Won', icon: Trophy, color: '#10b981' },
+  { id: 'new', label: 'New', icon: Target, color: '#79c0ff' },
+  { id: 'qualified', label: 'Qualified', icon: TrendingUp, color: '#d4f542' },
+  { id: 'proposal', label: 'Proposal', icon: FileText, color: '#ffbe7a' },
+  { id: 'won', label: 'Won', icon: Trophy, color: '#7fd292' },
 ];
 
 const SOURCE_ICONS = {
@@ -26,9 +41,9 @@ const SOURCE_ICONS = {
 };
 
 const URGENCY_CONFIG = {
-  high: { label: 'High', color: '#ef4444', bg: '#fef2f2' },
-  medium: { label: 'Medium', color: '#f59e0b', bg: '#fffbeb' },
-  low: { label: 'Low', color: '#6b7280', bg: '#f9fafb' },
+  high: { label: 'High', color: '#ff8c8c', bg: 'rgba(161, 34, 34, 0.32)' },
+  medium: { label: 'Medium', color: '#ffd08d', bg: 'rgba(146, 89, 24, 0.28)' },
+  low: { label: 'Low', color: '#d0d7de', bg: 'rgba(83, 93, 102, 0.28)' },
 };
 
 const SAMPLE_LEADS = [
@@ -106,7 +121,18 @@ const SAMPLE_LEADS = [
   },
 ];
 
-const LeadFlowApp = () => {
+function getStats(leads) {
+  const total = leads.length;
+  const hot = leads.filter((lead) => lead.urgency === 'high').length;
+  const pipeline = leads.reduce((sum, lead) => sum + (lead.deal_size || 0), 0);
+  return { total, hot, pipeline };
+}
+
+function getLeadsByStage(leads, stage) {
+  return leads.filter((lead) => lead.stage === stage);
+}
+
+export default function LeadFlowApp() {
   const [activeTab, setActiveTab] = useState('demo');
   const [simulationLeads, setSimulationLeads] = useState([]);
   const [processingLeadId, setProcessingLeadId] = useState(null);
@@ -148,7 +174,6 @@ const LeadFlowApp = () => {
     },
   });
 
-  // Fetch user leads from Supabase
   const fetchUserLeads = useCallback(async () => {
     if (!isAuthenticated || !user) return;
     try {
@@ -168,20 +193,17 @@ const LeadFlowApp = () => {
     fetchUserLeads();
   }, [fetchUserLeads]);
 
-  // Simulation: stream leads in one by one
   useEffect(() => {
     if (activeTab !== 'demo') {
       if (simulationTimer.current) clearInterval(simulationTimer.current);
       return;
     }
 
-    // Reset simulation
     setSimulationLeads([]);
     simulationIndex.current = 0;
     setProcessingLeadId(null);
     setSelectedLead(null);
 
-    // Add first lead immediately
     const firstLead = SAMPLE_LEADS[0];
     setProcessingLeadId(firstLead.id);
     setTimeout(() => {
@@ -212,16 +234,6 @@ const LeadFlowApp = () => {
     };
   }, [activeTab]);
 
-  // Compute pipeline stats
-  const getStats = (leads) => {
-    const total = leads.length;
-    const hot = leads.filter((l) => l.urgency === 'high').length;
-    const pipeline = leads.reduce((sum, l) => sum + (l.deal_size || 0), 0);
-    return { total, hot, pipeline };
-  };
-
-  const getLeadsByStage = (leads, stage) => leads.filter((l) => l.stage === stage);
-
   const handleExtract = async () => {
     if (!inputText.trim()) return;
 
@@ -238,7 +250,6 @@ const LeadFlowApp = () => {
       const lead = await extractLead(inputText, sourceType);
       setExtractedLead(lead);
 
-      // Save to Supabase
       try {
         const { error: insertErr } = await supabase.from('leads').insert({
           user_id: user.id,
@@ -270,28 +281,26 @@ const LeadFlowApp = () => {
     setDraggedLead(lead);
   };
 
-  const handleDragOver = (e, stageId) => {
-    e.preventDefault();
+  const handleDragOver = (event, stageId) => {
+    event.preventDefault();
     setDragOverStage(stageId);
   };
 
-  const handleDrop = async (e, stageId) => {
-    e.preventDefault();
+  const handleDrop = async (event, stageId) => {
+    event.preventDefault();
     setDragOverStage(null);
     if (!draggedLead || draggedLead.stage === stageId) {
       setDraggedLead(null);
       return;
     }
 
-    // Optimistic update
     setUserLeads((prev) =>
-      prev.map((l) => (l.id === draggedLead.id ? { ...l, stage: stageId } : l))
+      prev.map((lead) => (lead.id === draggedLead.id ? { ...lead, stage: stageId } : lead))
     );
 
     try {
       await supabase.from('leads').update({ stage: stageId }).eq('id', draggedLead.id);
     } catch {
-      // Revert on failure
       fetchUserLeads();
     }
 
@@ -305,197 +314,224 @@ const LeadFlowApp = () => {
 
   const simStats = getStats(simulationLeads);
   const userStats = getStats(userLeads);
+  const activeStats = activeTab === 'demo' ? simStats : userStats;
+  const stageCards = activeTab === 'demo' ? simulationLeads : userLeads;
 
   return (
     <article className="leadflow-app">
-      <header className="leadflow-header">
-        <div className="leadflow-badge">
-          <Sparkles size={16} aria-hidden="true" />
-          <span>AI-Powered CRM</span>
+      <header className="leadflow-hero">
+        <div className="leadflow-hero__copy">
+          <div className="leadflow-kicker">
+            <Sparkles size={14} />
+            <span>Pipeline desk</span>
+          </div>
+          <h1>LeadFlow AI</h1>
+          <p>
+            Route inbound messages into a working pipeline, qualify what matters, and move leads
+            across stages without building a bulky CRM around the process.
+          </p>
+          <div className="leadflow-tabs">
+            <button
+              type="button"
+              className={`leadflow-tab ${activeTab === 'demo' ? 'active' : ''}`}
+              onClick={() => setActiveTab('demo')}
+            >
+              <Zap size={15} />
+              Live demo
+            </button>
+            <button
+              type="button"
+              className={`leadflow-tab ${activeTab === 'tryit' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tryit')}
+            >
+              <Sparkles size={15} />
+              Try it yourself
+            </button>
+          </div>
         </div>
-        <h1>LeadFlow AI</h1>
-        <p>Your leads find you. Your CRM builds itself.</p>
-      </header>
 
-      {/* Tab Bar */}
-      <div className="leadflow-tabs">
-        <button
-          className={`leadflow-tab ${activeTab === 'demo' ? 'active' : ''}`}
-          onClick={() => setActiveTab('demo')}
-        >
-          <Zap size={16} />
-          Live Demo
-        </button>
-        <button
-          className={`leadflow-tab ${activeTab === 'tryit' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tryit')}
-        >
-          <Sparkles size={16} />
-          Try It Yourself
-        </button>
-      </div>
-
-      {/* Demo Tab */}
-      {activeTab === 'demo' && (
-        <section className="leadflow-demo" aria-label="Live demo">
-          {/* Stats Bar */}
+        <aside className="leadflow-hero__sidecar">
+          <div className="leadflow-stat-block">
+            <span>Pipeline mode</span>
+            <strong>{activeTab === 'demo' ? 'Simulated stream' : 'Your live board'}</strong>
+          </div>
           <div className="leadflow-stats-bar">
             <div className="leadflow-stat">
-              <Users size={16} />
-              <span className="leadflow-stat-value">{simStats.total}</span>
-              <span className="leadflow-stat-label">Leads</span>
+              <Users size={15} />
+              <div>
+                <span className="leadflow-stat-value">{activeStats.total}</span>
+                <span className="leadflow-stat-label">Leads</span>
+              </div>
             </div>
             <div className="leadflow-stat">
-              <Flame size={16} />
-              <span className="leadflow-stat-value">{simStats.hot}</span>
-              <span className="leadflow-stat-label">Hot</span>
+              <Flame size={15} />
+              <div>
+                <span className="leadflow-stat-value">{activeStats.hot}</span>
+                <span className="leadflow-stat-label">Hot</span>
+              </div>
             </div>
             <div className="leadflow-stat">
-              <DollarSign size={16} />
-              <span className="leadflow-stat-value">${(simStats.pipeline / 1000).toFixed(0)}K</span>
-              <span className="leadflow-stat-label">Pipeline</span>
+              <DollarSign size={15} />
+              <div>
+                <span className="leadflow-stat-value">${(activeStats.pipeline / 1000).toFixed(0)}K</span>
+                <span className="leadflow-stat-label">Pipeline</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </header>
+
+      {activeTab === 'demo' && (
+        <section className="leadflow-desk" aria-label="Live demo">
+          <div className="leadflow-feed">
+            <div className="leadflow-section-head">
+              <h2 className="leadflow-section-title">
+                <Mail size={18} />
+                Incoming stream
+              </h2>
+              <p>Watch the intake queue populate and flow into the board.</p>
+            </div>
+
+            <div className="leadflow-feed-list">
+              <AnimatePresence>
+                {processingLeadId && (
+                  <motion.div
+                    className="leadflow-processing"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <Sparkles size={15} className="leadflow-sparkle-spin" />
+                    <span>AI processing lead…</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {[...simulationLeads].reverse().map((lead) => {
+                  const SourceIcon = SOURCE_ICONS[lead.channel] || Mail;
+                  const urgency = URGENCY_CONFIG[lead.urgency] || URGENCY_CONFIG.medium;
+                  return (
+                    <motion.div
+                      key={lead.id}
+                      className={`leadflow-feed-card ${selectedLead?.id === lead.id ? 'selected' : ''}`}
+                      initial={{ opacity: 0, x: -20, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: 'auto' }}
+                      onClick={() => setSelectedLead(selectedLead?.id === lead.id ? null : lead)}
+                    >
+                      <div className="leadflow-feed-card-row">
+                        <div className="leadflow-feed-icon">
+                          <SourceIcon size={16} />
+                        </div>
+                        <div className="leadflow-feed-info">
+                          <span className="leadflow-feed-name">{lead.name}</span>
+                          <span className="leadflow-feed-company">{lead.company}</span>
+                        </div>
+                        <span
+                          className="leadflow-urgency-dot"
+                          style={{ background: urgency.color }}
+                          title={`${urgency.label} urgency`}
+                        />
+                      </div>
+                      <p className="leadflow-feed-intent">{lead.intent}</p>
+
+                      <AnimatePresence>
+                        {selectedLead?.id === lead.id && (
+                          <motion.div
+                            className="leadflow-feed-detail"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <div className="leadflow-detail-raw">
+                              <span className="leadflow-detail-label">Original message</span>
+                              <p>{lead.raw_text}</p>
+                            </div>
+                            <div className="leadflow-detail-fields">
+                              {lead.email && (
+                                <div className="leadflow-detail-field">
+                                  <AtSign size={12} /> {lead.email}
+                                </div>
+                              )}
+                              <div className="leadflow-detail-field">
+                                <DollarSign size={12} /> ${lead.deal_size?.toLocaleString()}
+                              </div>
+                              <div className="leadflow-detail-field">
+                                <ArrowRight size={12} /> {lead.suggested_action}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
 
-          <div className="leadflow-demo-layout">
-            {/* Incoming Feed */}
-            <div className="leadflow-feed">
-              <h2 className="leadflow-section-title">
-                <Mail size={18} />
-                Incoming
-              </h2>
-              <div className="leadflow-feed-list">
-                {/* Processing indicator */}
-                <AnimatePresence>
-                  {processingLeadId && (
-                    <motion.div
-                      className="leadflow-processing"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <Sparkles size={16} className="leadflow-sparkle-spin" />
-                      <span>AI processing lead...</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {[...simulationLeads].reverse().map((lead) => {
-                    const SourceIcon = SOURCE_ICONS[lead.channel] || Mail;
-                    const urgency = URGENCY_CONFIG[lead.urgency] || URGENCY_CONFIG.medium;
-                    return (
-                      <motion.div
-                        key={lead.id}
-                        className={`leadflow-feed-card ${selectedLead?.id === lead.id ? 'selected' : ''}`}
-                        initial={{ opacity: 0, x: -20, height: 0 }}
-                        animate={{ opacity: 1, x: 0, height: 'auto' }}
-                        onClick={() => setSelectedLead(selectedLead?.id === lead.id ? null : lead)}
-                      >
-                        <div className="leadflow-feed-card-row">
-                          <div className="leadflow-feed-icon">
-                            <SourceIcon size={16} />
-                          </div>
-                          <div className="leadflow-feed-info">
-                            <span className="leadflow-feed-name">{lead.name}</span>
-                            <span className="leadflow-feed-company">{lead.company}</span>
-                          </div>
-                          <span
-                            className="leadflow-urgency-dot"
-                            style={{ background: urgency.color }}
-                            title={`${urgency.label} urgency`}
-                          />
-                        </div>
-                        <p className="leadflow-feed-intent">{lead.intent}</p>
-
-                        {/* Expanded detail */}
-                        <AnimatePresence>
-                          {selectedLead?.id === lead.id && (
-                            <motion.div
-                              className="leadflow-feed-detail"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                            >
-                              <div className="leadflow-detail-raw">
-                                <span className="leadflow-detail-label">Original message:</span>
-                                <p>{lead.raw_text}</p>
-                              </div>
-                              <div className="leadflow-detail-fields">
-                                {lead.email && (
-                                  <div className="leadflow-detail-field">
-                                    <AtSign size={12} /> {lead.email}
-                                  </div>
-                                )}
-                                <div className="leadflow-detail-field">
-                                  <DollarSign size={12} /> ${lead.deal_size?.toLocaleString()}
-                                </div>
-                                <div className="leadflow-detail-field">
-                                  <ArrowRight size={12} /> {lead.suggested_action}
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </div>
-
-            {/* Kanban Pipeline */}
-            <div className="leadflow-pipeline">
+          <div className="leadflow-pipeline">
+            <div className="leadflow-section-head">
               <h2 className="leadflow-section-title">
                 <TrendingUp size={18} />
-                Pipeline
+                Pipeline board
               </h2>
-              <div className="leadflow-kanban">
-                {STAGES.map((stage) => {
-                  const StageIcon = stage.icon;
-                  const stageLeads = getLeadsByStage(simulationLeads, stage.id);
-                  return (
-                    <div key={stage.id} className="leadflow-kanban-col">
-                      <div className="leadflow-kanban-header" style={{ borderColor: stage.color }}>
-                        <StageIcon size={14} style={{ color: stage.color }} />
-                        <span>{stage.label}</span>
-                        <span className="leadflow-kanban-count">{stageLeads.length}</span>
-                      </div>
-                      <div className="leadflow-kanban-cards">
-                        <AnimatePresence>
-                          {stageLeads.map((lead) => (
-                            <motion.div
-                              key={lead.id}
-                              className="leadflow-kanban-card"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              layout
-                            >
-                              <span className="leadflow-kanban-card-name">{lead.name}</span>
-                              <span className="leadflow-kanban-card-company">{lead.company}</span>
-                              <span className="leadflow-kanban-card-deal">${lead.deal_size?.toLocaleString()}</span>
-                            </motion.div>
-                          ))}
-                        </AnimatePresence>
-                      </div>
+              <p>Stages stay visible as leads move from raw intake to signed work.</p>
+            </div>
+
+            <div className="leadflow-kanban">
+              {STAGES.map((stage) => {
+                const StageIcon = stage.icon;
+                const stageLeads = getLeadsByStage(stageCards, stage.id);
+                return (
+                  <div key={stage.id} className="leadflow-kanban-col">
+                    <div className="leadflow-kanban-header" style={{ borderColor: stage.color }}>
+                      <StageIcon size={14} style={{ color: stage.color }} />
+                      <span>{stage.label}</span>
+                      <span className="leadflow-kanban-count">{stageLeads.length}</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="leadflow-kanban-cards">
+                      <AnimatePresence>
+                        {stageLeads.map((lead) => (
+                          <motion.div
+                            key={lead.id}
+                            className="leadflow-kanban-card"
+                            initial={{ opacity: 0, scale: 0.88 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            layout
+                          >
+                            <span className="leadflow-kanban-card-name">{lead.name}</span>
+                            <span className="leadflow-kanban-card-company">{lead.company}</span>
+                            <span className="leadflow-kanban-card-deal">${lead.deal_size?.toLocaleString()}</span>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {/* Try It Tab */}
       {activeTab === 'tryit' && (
         <section className="leadflow-tryit" aria-label="Try it yourself">
           <div className="leadflow-tryit-input-area">
+            <div className="leadflow-section-head">
+              <h2 className="leadflow-section-title">
+                <Sparkles size={18} />
+                Intake parser
+              </h2>
+              <p>Paste an inbound message and let the extractor map it into a structured lead record.</p>
+            </div>
+
             <div className="leadflow-source-selector">
-              <span className="leadflow-source-label">Source:</span>
+              <span className="leadflow-source-label">Source</span>
               {Object.entries(SOURCE_ICONS).map(([type, Icon]) => (
                 <button
                   key={type}
+                  type="button"
                   className={`leadflow-source-btn ${sourceType === type ? 'active' : ''}`}
                   onClick={() => setSourceType(type)}
                 >
@@ -511,18 +547,19 @@ const LeadFlowApp = () => {
                 sourceType === 'email'
                   ? 'Paste an email from a potential client...\n\nExample: "Hi, we\'re looking for a developer to build a custom inventory app. Budget is $15K. Can we set up a call?"'
                   : sourceType === 'dm'
-                  ? 'Paste a DM from Instagram, Twitter, or LinkedIn...\n\nExample: "hey saw your work, we need a mobile app for our team. lmk if you\'re available"'
-                  : 'Paste a form submission...\n\nExample: "Name: John Smith, Company: Acme Corp, Need: Custom CRM system, Budget: $20,000"'
+                    ? 'Paste a DM from Instagram, Twitter, or LinkedIn...\n\nExample: "hey saw your work, we need a mobile app for our team. lmk if you\'re available"'
+                    : 'Paste a form submission...\n\nExample: "Name: John Smith, Company: Acme Corp, Need: Custom CRM system, Budget: $20,000"'
               }
               value={inputText}
-              onChange={(e) => {
-                setInputText(e.target.value);
+              onChange={(event) => {
+                setInputText(event.target.value);
                 setError('');
               }}
               aria-label="Paste lead text"
             />
 
             <button
+              type="button"
               className="leadflow-btn leadflow-btn-primary"
               onClick={handleExtract}
               disabled={!inputText.trim() || isExtracting}
@@ -530,18 +567,17 @@ const LeadFlowApp = () => {
               {isExtracting ? (
                 <>
                   <RefreshCw size={18} className="leadflow-spinner" />
-                  Extracting...
+                  Extracting…
                 </>
               ) : (
                 <>
                   <Sparkles size={18} />
-                  Extract Lead
+                  Extract lead
                 </>
               )}
             </button>
           </div>
 
-          {/* Extracted Result */}
           <AnimatePresence>
             {extractedLead && (
               <motion.div
@@ -551,7 +587,7 @@ const LeadFlowApp = () => {
               >
                 <div className="leadflow-result-header">
                   <Sparkles size={16} />
-                  <span>Lead Extracted</span>
+                  <span>Lead extracted</span>
                 </div>
                 <div className="leadflow-result-fields">
                   {extractedLead.name && (
@@ -623,25 +659,34 @@ const LeadFlowApp = () => {
             )}
           </AnimatePresence>
 
-          {/* User's Pipeline */}
           {isAuthenticated && userLeads.length > 0 && (
             <div className="leadflow-user-pipeline">
               <div className="leadflow-user-pipeline-header">
-                <h2 className="leadflow-section-title">
-                  <TrendingUp size={18} />
-                  Your Pipeline
-                </h2>
+                <div className="leadflow-section-head">
+                  <h2 className="leadflow-section-title">
+                    <TrendingUp size={18} />
+                    Your pipeline
+                  </h2>
+                  <p>Drag leads across stages as they qualify and move forward.</p>
+                </div>
                 <div className="leadflow-stats-bar leadflow-stats-bar-compact">
                   <div className="leadflow-stat">
                     <Users size={14} />
-                    <span className="leadflow-stat-value">{userStats.total}</span>
+                    <div>
+                      <span className="leadflow-stat-value">{userStats.total}</span>
+                      <span className="leadflow-stat-label">Leads</span>
+                    </div>
                   </div>
                   <div className="leadflow-stat">
                     <DollarSign size={14} />
-                    <span className="leadflow-stat-value">${(userStats.pipeline / 1000).toFixed(0)}K</span>
+                    <div>
+                      <span className="leadflow-stat-value">${(userStats.pipeline / 1000).toFixed(0)}K</span>
+                      <span className="leadflow-stat-label">Pipeline</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
               <div className="leadflow-kanban">
                 {STAGES.map((stage) => {
                   const StageIcon = stage.icon;
@@ -650,8 +695,8 @@ const LeadFlowApp = () => {
                     <div
                       key={stage.id}
                       className={`leadflow-kanban-col ${dragOverStage === stage.id ? 'drag-over' : ''}`}
-                      onDragOver={(e) => handleDragOver(e, stage.id)}
-                      onDrop={(e) => handleDrop(e, stage.id)}
+                      onDragOver={(event) => handleDragOver(event, stage.id)}
+                      onDrop={(event) => handleDrop(event, stage.id)}
                       onDragLeave={() => setDragOverStage(null)}
                     >
                       <div className="leadflow-kanban-header" style={{ borderColor: stage.color }}>
@@ -686,20 +731,18 @@ const LeadFlowApp = () => {
         </section>
       )}
 
-      {/* Error */}
       {error && (
         <div className="leadflow-error" role="alert">
           <span>{error}</span>
-          <button onClick={() => setError('')} aria-label="Dismiss error">&times;</button>
+          <button type="button" onClick={() => setError('')} aria-label="Dismiss error">
+            &times;
+          </button>
         </div>
       )}
 
-      {/* Auth Modal */}
       {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
     </article>
   );
-};
-
-export default LeadFlowApp;
+}
