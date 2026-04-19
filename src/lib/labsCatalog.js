@@ -283,7 +283,28 @@ export const labsCatalog = [
 
 export const publicLabsApps = labsCatalog.filter((app) => app.public && app.complete);
 
+export function formatLabUsageCount(count) {
+  return new Intl.NumberFormat('en-US').format(count);
+}
+
+export function applyUsageCounts(apps, usageCounts = {}) {
+  return apps.map((app) => {
+    if (!Object.prototype.hasOwnProperty.call(usageCounts, app.id)) {
+      return app;
+    }
+
+    const nextCount = Number.parseInt(String(usageCounts[app.id]), 10);
+    if (!Number.isFinite(nextCount) || nextCount < 0) {
+      return app;
+    }
+
+    return {
+      ...app,
+      users: formatLabUsageCount(nextCount),
+    };
+  });
+}
+
 export function findLabApp(projectId) {
   return publicLabsApps.find((app) => app.id === projectId) || null;
 }
-

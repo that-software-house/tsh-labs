@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { LabsChrome } from '@/components/labs/LabsShell';
-import { publicLabsApps } from '@/lib/labsCatalog';
+import { usePublicLabsApps } from '@/hooks/usePublicLabsApps';
 import { useSEO } from '@/hooks/useSEO';
 
-function StatusPanel() {
-  const featured = publicLabsApps.slice(0, 5);
+function StatusPanel({ apps }) {
+  const featured = apps.slice(0, 5);
 
   return (
     <div className="labs-status-stack">
@@ -20,7 +20,7 @@ function StatusPanel() {
             <span className="labs-pill labs-pill--live">Open</span>
           </div>
           <div className="labs-display labs-display--lg">
-            {publicLabsApps.length} <em>public tools</em>
+            {apps.length} <em>public tools</em>
           </div>
           <div className="labs-microgrid">
             <span>auth only when needed</span>
@@ -43,7 +43,7 @@ function StatusPanel() {
 
       <section className="labs-mini-stats">
         {[
-          ['8', 'apps live'],
+          [String(apps.length), 'apps live'],
           ['10/day', 'guest AI runs'],
           ['0', 'accounts needed to browse'],
         ].map(([big, small]) => (
@@ -58,6 +58,7 @@ function StatusPanel() {
 }
 
 export default function LabsLanding() {
+  const publicLabsApps = usePublicLabsApps();
   const featured = publicLabsApps.filter((app) => app.featured).slice(0, 3);
 
   useSEO({
@@ -125,7 +126,7 @@ export default function LabsLanding() {
             </div>
           </div>
 
-          <StatusPanel />
+          <StatusPanel apps={publicLabsApps} />
         </div>
       </section>
 
@@ -176,4 +177,3 @@ export default function LabsLanding() {
     </LabsChrome>
   );
 }
-

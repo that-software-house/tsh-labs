@@ -14,6 +14,7 @@ const INVOICE_CHASER_API_BASE = apiUrl('/api/invoice-chaser');
 const VIDEO_ANALYZER_API_BASE = apiUrl('/api/video-analyzer');
 const BILLING_API_BASE = apiUrl('/api/billing');
 const LEADFLOW_API_BASE = apiUrl('/api/leadflow');
+const METRICS_API_BASE = apiUrl('/api/metrics');
 const USAGE_UPDATED_EVENT = 'usage:updated';
 
 async function parseJsonSafe(response) {
@@ -373,4 +374,19 @@ export async function fetchYouTubeFrames(youtubeUrl) {
   }
 
   return data || {};
+}
+
+export async function fetchAppUsageCounts(days = 30) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${METRICS_API_BASE}/app-usage?days=${encodeURIComponent(days)}`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Failed to fetch app usage counts');
+  }
+
+  return data || { counts: {} };
 }

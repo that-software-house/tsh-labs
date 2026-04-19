@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LabsChrome } from '@/components/labs/LabsShell';
-import { publicLabsApps } from '@/lib/labsCatalog';
+import { usePublicLabsApps } from '@/hooks/usePublicLabsApps';
 import { useSEO } from '@/hooks/useSEO';
 
 const ALL = 'All';
 
 export default function LabsShowcase() {
+  const publicLabsApps = usePublicLabsApps();
   const [filter, setFilter] = useState(ALL);
 
   const categories = useMemo(() => {
@@ -119,4 +120,3 @@ export default function LabsShowcase() {
     </LabsChrome>
   );
 }
-
