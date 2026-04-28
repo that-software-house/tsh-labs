@@ -12,7 +12,7 @@ const TONE_API_BASE = apiUrl('/api/tone');
 const DATA_INSIGHTS_API_BASE = apiUrl('/api/data-insights');
 const INVOICE_CHASER_API_BASE = apiUrl('/api/invoice-chaser');
 const VIDEO_ANALYZER_API_BASE = apiUrl('/api/video-analyzer');
-const GROK_VIDEO_API_BASE = apiUrl('/api/grok-video');
+const THAT_VIDEO_API_BASE = apiUrl('/api/that-video');
 const BILLING_API_BASE = apiUrl('/api/billing');
 const LEADFLOW_API_BASE = apiUrl('/api/leadflow');
 const METRICS_API_BASE = apiUrl('/api/metrics');
@@ -95,6 +95,21 @@ function syncUsageFromResponse(response, data) {
   if (usageFromHeaders) {
     emitUsageUpdate(usageFromHeaders);
   }
+}
+
+function normalizeThatVideoJob(job) {
+  if (!job || typeof job !== 'object') return {};
+
+  const normalizeUrl = (value) => {
+    if (typeof value !== 'string' || !value.startsWith('/')) return value || null;
+    return apiUrl(value);
+  };
+
+  return {
+    ...job,
+    videoUrl: normalizeUrl(job.videoUrl),
+    contentUrl: normalizeUrl(job.contentUrl),
+  };
 }
 
 export async function generateContent(content, formats, sourceType = 'text') {
@@ -377,10 +392,11 @@ export async function fetchYouTubeFrames(youtubeUrl) {
   return data || {};
 }
 
-export async function createGrokVideoJob(
+export async function createThatVideoJob(
   file,
   prompt,
   durationSeconds = 5,
+  model = 'grok-imagine-video',
   aspectRatio = 'auto',
   resolution = 'auto'
 ) {
@@ -388,13 +404,14 @@ export async function createGrokVideoJob(
   formData.append('image', file);
   formData.append('prompt', prompt);
   formData.append('durationSeconds', String(durationSeconds));
+  formData.append('model', model);
   formData.append('aspectRatio', aspectRatio);
   formData.append('resolution', resolution);
 
   const authHeaders = await getAuthHeaders();
   delete authHeaders['Content-Type'];
 
-  const response = await fetch(`${GROK_VIDEO_API_BASE}/jobs`, {
+  const response = await fetch(`${THAT_VIDEO_API_BASE}/jobs`, {
     method: 'POST',
     headers: authHeaders,
     body: formData,
@@ -409,16 +426,16 @@ export async function createGrokVideoJob(
       data?.message
         || data?.error
         || rawBody.trim()
-        || `Failed to start Grok video generation (HTTP ${response.status})`
+        || `Failed to start THAT Video generation (HTTP ${response.status})`
     );
   }
 
-  return data?.job || {};
+  return normalizeThatVideoJob(data?.job);
 }
 
-export async function fetchGrokVideoJob(jobId) {
+export async function fetchThatVideoJob(jobId) {
   const headers = await getAuthHeaders();
-  const response = await fetch(`${GROK_VIDEO_API_BASE}/jobs/${encodeURIComponent(jobId)}`, {
+  const response = await fetch(`${THAT_VIDEO_API_BASE}/jobs/${encodeURIComponent(jobId)}`, {
     method: 'GET',
     headers,
   });
@@ -426,10 +443,10 @@ export async function fetchGrokVideoJob(jobId) {
   const data = await parseJsonSafe(response);
   syncUsageFromResponse(response, data);
   if (!response.ok) {
-    throw new Error(data?.message || data?.error || 'Failed to fetch Grok video job');
+    throw new Error(data?.message || data?.error || 'Failed to fetch THAT Video job');
   }
 
-  return data?.job || {};
+  return normalizeThatVideoJob(data?.job);
 }
 
 export async function fetchAppUsageCounts(days = 30) {

@@ -281,11 +281,12 @@ export const labsCatalog = [
   },
   {
     id: 'grokvideo',
+    code: 'THATVIDEO',
     num: '09',
-    name: 'Grok Video',
-    tag: 'Image to motion',
+    name: 'THAT Video',
+    tag: 'Image to video',
     blurb:
-      'Upload a still image, choose a short duration, and generate a Grok-powered motion clip directly inside Labs.',
+      'Upload a still image, pick Grok Imagine or Sora 2, and generate a short motion clip directly inside Labs.',
     category: 'Content',
     status: 'beta',
     price: 'Auth required',
@@ -298,18 +299,18 @@ export const labsCatalog = [
     authRequired: true,
     accent: '#D4F542',
     headline:
-      'Turn a single still image into a 5s or 10s Grok video without leaving the app.',
+      'Turn a single still image into a short AI video without leaving the app.',
     subhead:
-      'The first release keeps the workflow narrow on purpose: image upload only, default motion prompting, authenticated access, and temporary in-app playback.',
+      'The first release keeps the workflow narrow on purpose: image upload only, prompt-guided motion, authenticated access, model selection, and temporary in-app playback.',
     manifest: [
       ['Input', 'JPG, PNG, or WebP image'],
-      ['Output', '5s or 10s generated video'],
+      ['Output', '4s to 12s generated video'],
       ['Best for', 'Motion concepts and quick visual tests'],
       ['Auth', 'Required'],
     ],
     stats: [
-      ['5 / 10s', 'clip lengths'],
-      ['Grok', 'video generation'],
+      ['2', 'video models'],
+      ['4-12s', 'clip lengths'],
       ['Auth', 'gated workflow'],
       ['Beta', 'in-app preview only'],
     ],

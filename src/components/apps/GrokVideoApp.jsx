@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/context/AuthContext';
-import { createGrokVideoJob, fetchGrokVideoJob } from '@/services/openai';
+import { createThatVideoJob, fetchThatVideoJob } from '@/services/openai';
 import './GrokVideoApp.css';
 
 const MAX_IMAGE_BYTES = Number.parseInt(
@@ -24,13 +24,23 @@ const RESOLUTION_RATES = {
   '480p': Number.parseFloat(import.meta.env.VITE_GROK_VIDEO_RATE_480P || '0.06'),
   '720p': Number.parseFloat(import.meta.env.VITE_GROK_VIDEO_RATE_720P || '0.084'),
 };
+const SORA_2_RATE = Number.parseFloat(import.meta.env.VITE_SORA_2_RATE || '0.10');
+const MODEL_OPTIONS = [
+  { value: 'grok-imagine-video', label: 'Grok Imagine', note: 'xAI image-to-video' },
+  { value: 'sora-2', label: 'Sora 2', note: 'OpenAI video generation' },
+];
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const DURATION_OPTIONS = [
+const GROK_DURATION_OPTIONS = [
   { value: 5, label: '5s', note: 'Fast test clip' },
   { value: 10, label: '10s', note: 'Full motion pass' },
 ];
-const ASPECT_RATIO_OPTIONS = [
+const SORA_DURATION_OPTIONS = [
+  { value: 4, label: '4s', note: 'Shortest supported' },
+  { value: 8, label: '8s', note: 'Balanced default' },
+  { value: 12, label: '12s', note: 'Longer render' },
+];
+const GROK_ASPECT_RATIO_OPTIONS = [
   { value: 'auto', label: 'Auto', note: 'Use image ratio' },
   { value: '9:16', label: '9:16', note: 'Vertical social' },
   { value: '16:9', label: '16:9', note: 'Landscape video' },
@@ -40,7 +50,12 @@ const ASPECT_RATIO_OPTIONS = [
   { value: '2:3', label: '2:3', note: 'Portrait photo' },
   { value: '3:2', label: '3:2', note: 'Wide photo' },
 ];
-const RESOLUTION_OPTIONS = [
+const SORA_ASPECT_RATIO_OPTIONS = [
+  { value: 'auto', label: 'Auto', note: 'Infer from image orientation' },
+  { value: '9:16', label: '9:16', note: 'Portrait video' },
+  { value: '16:9', label: '16:9', note: 'Landscape video' },
+];
+const GROK_RESOLUTION_OPTIONS = [
   { value: 'auto', label: 'Auto', note: 'Use xAI default' },
   { value: '480p', label: '480p', note: 'Lower cost, faster' },
   { value: '720p', label: '720p', note: 'Sharper output' },
@@ -58,21 +73,21 @@ function getStatusCopy(job, isSubmitting) {
   if (isSubmitting) {
     return {
       title: 'Uploading image',
-      body: 'Sending the still image to the Grok video pipeline and starting a new job.',
+      body: 'Sending the still image to the selected video model and starting a new job.',
     };
   }
 
   if (!job) {
     return {
       title: 'Ready for image',
-      body: 'Upload a still image, choose 5 or 10 seconds, and generate an in-app motion preview.',
+      body: 'Upload a still image, choose a model and duration, and generate an in-app motion preview.',
     };
   }
 
   if (job.status === 'ready') {
     return {
       title: 'Video ready',
-      body: 'The generated clip is available below. The xAI result URL is temporary in this first version.',
+      body: 'The generated clip is available below. This first version only keeps the result available in-app for a short window.',
     };
   }
 
@@ -85,7 +100,7 @@ function getStatusCopy(job, isSubmitting) {
 
   return {
     title: 'Generating motion',
-    body: 'Grok is turning the still image into a short motion clip. Polling will continue automatically.',
+    body: `${job.model === 'sora-2' ? 'Sora 2' : 'Grok Imagine'} is turning the still image into a short motion clip. Polling will continue automatically.`,
   };
 }
 
@@ -110,6 +125,7 @@ export default function GrokVideoApp() {
   const { isAuthenticated } = useAuth();
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [selectedModel, setSelectedModel] = useState('grok-imagine-video');
   const [prompt, setPrompt] = useState('');
   const [durationSeconds, setDurationSeconds] = useState(5);
   const [aspectRatio, setAspectRatio] = useState('auto');
@@ -140,10 +156,10 @@ export default function GrokVideoApp() {
 
     const timeoutId = window.setTimeout(async () => {
       try {
-        const nextJob = await fetchGrokVideoJob(job.id);
+        const nextJob = await fetchThatVideoJob(job.id);
         setJob(nextJob);
       } catch (pollError) {
-        setError(pollError.message || 'Unable to refresh the Grok video job right now.');
+        setError(pollError.message || 'Unable to refresh the THAT Video job right now.');
       }
     }, 5000);
 
@@ -154,9 +170,36 @@ export default function GrokVideoApp() {
 
   const statusCopy = getStatusCopy(job, isSubmitting);
   const isBusy = isSubmitting || (job && job.status !== 'ready' && job.status !== 'failed');
-  const effectiveResolution = resolution === 'auto' ? '480p' : resolution;
-  const estimatedRate = RESOLUTION_RATES[effectiveResolution] || 0;
+  const isSoraModel = selectedModel === 'sora-2';
+  const durationOptions = isSoraModel ? SORA_DURATION_OPTIONS : GROK_DURATION_OPTIONS;
+  const aspectRatioOptions = isSoraModel ? SORA_ASPECT_RATIO_OPTIONS : GROK_ASPECT_RATIO_OPTIONS;
+  const resolutionOptions = isSoraModel ? [] : GROK_RESOLUTION_OPTIONS;
+  const effectiveResolution = isSoraModel ? 'standard' : (resolution === 'auto' ? '480p' : resolution);
+  const estimatedRate = isSoraModel ? SORA_2_RATE : (RESOLUTION_RATES[effectiveResolution] || 0);
   const estimatedCost = durationSeconds * estimatedRate;
+  const currentModel = job?.model || selectedModel;
+  const currentAspectRatio = job?.aspectRatio || aspectRatio;
+  const currentResolution = job?.resolution || resolution;
+  const formatSummary = currentModel === 'sora-2'
+    ? `${formatOptionLabel(currentAspectRatio)} · OpenAI preset`
+    : `${formatOptionLabel(currentAspectRatio)} · ${formatOptionLabel(currentResolution)}`;
+
+  useEffect(() => {
+    if (selectedModel === 'sora-2') {
+      if (![4, 8, 12].includes(durationSeconds)) {
+        setDurationSeconds(8);
+      }
+      if (!['auto', '9:16', '16:9'].includes(aspectRatio)) {
+        setAspectRatio('auto');
+      }
+      setResolution('auto');
+      return;
+    }
+
+    if (![5, 10].includes(durationSeconds)) {
+      setDurationSeconds(5);
+    }
+  }, [aspectRatio, durationSeconds, selectedModel]);
 
   const handleFileChange = (event) => {
     const nextFile = event.target.files?.[0] || null;
@@ -180,6 +223,7 @@ export default function GrokVideoApp() {
   const handleReset = () => {
     setError('');
     setImageFile(null);
+    setSelectedModel('grok-imagine-video');
     setPrompt('');
     setJob(null);
     setDurationSeconds(5);
@@ -194,7 +238,7 @@ export default function GrokVideoApp() {
     }
 
     if (!imageFile) {
-      setError('Upload an image before starting the Grok video job.');
+      setError('Upload an image before starting the THAT Video job.');
       return;
     }
 
@@ -214,16 +258,17 @@ export default function GrokVideoApp() {
     setJob(null);
 
     try {
-      const createdJob = await createGrokVideoJob(
+      const createdJob = await createThatVideoJob(
         imageFile,
         normalizedPrompt,
         durationSeconds,
+        selectedModel,
         aspectRatio,
         resolution
       );
       setJob(createdJob);
     } catch (submitError) {
-      setError(submitError.message || 'Unable to start the Grok video job.');
+      setError(submitError.message || 'Unable to start the THAT Video job.');
     } finally {
       setIsSubmitting(false);
     }
@@ -235,12 +280,12 @@ export default function GrokVideoApp() {
         <div className="grokvideo-hero__copy">
           <div className="grokvideo-kicker">
             <Sparkles size={14} />
-            <span>GROK IMAGE TO VIDEO</span>
+            <span>THAT VIDEO</span>
           </div>
           <h2>Turn a still image into a short motion clip.</h2>
           <p>
-            Upload a source image, describe the motion you want, choose the output frame and
-            resolution, and preview the generated Grok video in-app.
+            Upload a source image, pick a video model, describe the motion you want, and preview
+            the generated clip in-app.
           </p>
         </div>
 
@@ -250,8 +295,8 @@ export default function GrokVideoApp() {
             <strong>Image + prompt</strong>
           </div>
           <div className="grokvideo-stat">
-            <span>Durations</span>
-            <strong>5s or 10s</strong>
+            <span>Models</span>
+            <strong>Grok + Sora</strong>
           </div>
           <div className="grokvideo-stat">
             <span>Access</span>
@@ -299,9 +344,35 @@ export default function GrokVideoApp() {
               <ImagePlus size={18} />
             </div>
             <div>
+              <div className="grokvideo-card__eyebrow">// MODEL SELECTOR</div>
+              <h3>Choose Video Model</h3>
+              <p>Switch between xAI Grok Imagine and OpenAI Sora 2.</p>
+            </div>
+          </div>
+
+          <div className="grokvideo-option-grid">
+            {MODEL_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`grokvideo-duration ${selectedModel === option.value ? 'is-active' : ''}`}
+                onClick={() => setSelectedModel(option.value)}
+                disabled={isBusy}
+              >
+                <strong>{option.label}</strong>
+                <span>{option.note}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="grokvideo-card__header grokvideo-card__header--compact">
+            <div className="grokvideo-card__icon">
+              <ImagePlus size={18} />
+            </div>
+            <div>
               <div className="grokvideo-card__eyebrow">// IMAGE INPUT</div>
               <h3>Upload Source Frame</h3>
-              <p>Use a clean still image. The model adds motion, not a new prompt-driven scene.</p>
+              <p>Use a clean still image. The selected model will animate it from your prompt.</p>
             </div>
           </div>
 
@@ -337,7 +408,7 @@ export default function GrokVideoApp() {
             <div>
               <div className="grokvideo-card__eyebrow">// MOTION PROMPT</div>
               <h3>Describe the animation</h3>
-              <p>Tell Grok what should move, how the camera behaves, and the mood of the shot.</p>
+              <p>Tell the selected model what should move, how the camera behaves, and the mood of the shot.</p>
             </div>
           </div>
 
@@ -367,7 +438,7 @@ export default function GrokVideoApp() {
           </div>
 
           <div className="grokvideo-duration-grid">
-            {DURATION_OPTIONS.map((option) => (
+            {durationOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
@@ -388,12 +459,16 @@ export default function GrokVideoApp() {
             <div>
               <div className="grokvideo-card__eyebrow">// FRAME SHAPE</div>
               <h3>Aspect Ratio</h3>
-              <p>Use Auto to preserve the uploaded image ratio and avoid xAI stretching.</p>
+              <p>
+                {isSoraModel
+                  ? 'Sora 2 supports portrait or landscape. Auto leaves it to the app default.'
+                  : 'Use Auto to preserve the uploaded image ratio and avoid xAI stretching.'}
+              </p>
             </div>
           </div>
 
           <div className="grokvideo-option-grid grokvideo-option-grid--aspect">
-            {ASPECT_RATIO_OPTIONS.map((option) => (
+            {aspectRatioOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
@@ -407,31 +482,40 @@ export default function GrokVideoApp() {
             ))}
           </div>
 
-          <div className="grokvideo-card__header grokvideo-card__header--compact">
-            <div className="grokvideo-card__icon">
-              <RefreshCw size={18} />
-            </div>
-            <div>
-              <div className="grokvideo-card__eyebrow">// OUTPUT QUALITY</div>
-              <h3>Resolution</h3>
-              <p>Auto omits the field and lets xAI use its default generation resolution.</p>
-            </div>
-          </div>
+          {!isSoraModel ? (
+            <>
+              <div className="grokvideo-card__header grokvideo-card__header--compact">
+                <div className="grokvideo-card__icon">
+                  <RefreshCw size={18} />
+                </div>
+                <div>
+                  <div className="grokvideo-card__eyebrow">// OUTPUT QUALITY</div>
+                  <h3>Resolution</h3>
+                  <p>Auto omits the field and lets xAI use its default generation resolution.</p>
+                </div>
+              </div>
 
-          <div className="grokvideo-option-grid">
-            {RESOLUTION_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`grokvideo-duration ${resolution === option.value ? 'is-active' : ''}`}
-                onClick={() => setResolution(option.value)}
-                disabled={isBusy}
-              >
-                <strong>{option.label}</strong>
-                <span>{option.note}</span>
-              </button>
-            ))}
-          </div>
+              <div className="grokvideo-option-grid">
+                {resolutionOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`grokvideo-duration ${resolution === option.value ? 'is-active' : ''}`}
+                    onClick={() => setResolution(option.value)}
+                    disabled={isBusy}
+                  >
+                    <strong>{option.label}</strong>
+                    <span>{option.note}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="grokvideo-inline-note">
+              <strong>Sora 2 sizing</strong>
+              <p>Sora 2 uses OpenAI video size presets derived from the selected aspect ratio.</p>
+            </div>
+          )}
 
           <div className="grokvideo-cost">
             <div className="grokvideo-cost__eyebrow">// ROUGH COST ESTIMATE</div>
@@ -439,14 +523,15 @@ export default function GrokVideoApp() {
               <div>
                 <strong>{formatCurrency(estimatedCost)}</strong>
                 <p>
-                  {formatCurrency(estimatedRate)}/sec at {formatOptionLabel(effectiveResolution)} × {durationSeconds}s
+                  {formatCurrency(estimatedRate)}/sec on {selectedModel === 'sora-2' ? 'Sora 2' : `Grok ${formatOptionLabel(effectiveResolution)}`} × {durationSeconds}s
                 </p>
               </div>
               <span className="grokvideo-cost__badge">Estimate only</span>
             </div>
             <p className="grokvideo-cost__note">
-              Rough estimate based on selected duration and resolution. For Auto, this assumes xAI's documented 480p default. Update
-              `VITE_GROK_VIDEO_RATE_480P` and `VITE_GROK_VIDEO_RATE_720P` if your xAI billing differs.
+              {selectedModel === 'sora-2'
+                ? 'Rough estimate based on OpenAI Sora 2 per-second pricing. Update `VITE_SORA_2_RATE` if your billing differs.'
+                : 'Rough estimate based on selected duration and resolution. For Auto, this assumes xAI\'s documented 480p default. Update `VITE_GROK_VIDEO_RATE_480P` and `VITE_GROK_VIDEO_RATE_720P` if your xAI billing differs.'}
             </p>
           </div>
 
@@ -503,8 +588,12 @@ export default function GrokVideoApp() {
               <strong>{job?.durationSeconds || durationSeconds}s</strong>
             </div>
             <div>
+              <span>Model</span>
+              <strong>{currentModel === 'sora-2' ? 'Sora 2' : 'Grok Imagine'}</strong>
+            </div>
+            <div>
               <span>Format</span>
-              <strong>{formatOptionLabel(job?.aspectRatio || aspectRatio)} · {formatOptionLabel(job?.resolution || resolution)}</strong>
+              <strong>{formatSummary}</strong>
             </div>
           </div>
 
@@ -537,7 +626,7 @@ export default function GrokVideoApp() {
               <p>
                 {job?.status === 'failed'
                   ? 'This run failed before a playable result was returned.'
-                  : 'The finished video will appear here when Grok completes the job.'}
+                  : 'The finished video will appear here when the selected model completes the job.'}
               </p>
             </div>
           )}

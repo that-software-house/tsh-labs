@@ -86,7 +86,7 @@ export default function LabsToolPage() {
               <section className="labs-panel">
                 <div className="labs-panel__header">
                   <span>// MANIFEST</span>
-                  <span>{app.id.toUpperCase()}</span>
+                  <span>{(app.code || app.id).toUpperCase()}</span>
                 </div>
                 <div className="labs-panel__body labs-panel__manifest">
                   {app.manifest.map(([key, value]) => (

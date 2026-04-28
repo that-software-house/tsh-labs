@@ -309,6 +309,19 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.grokvideo-inline-note {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 12, 12, 0.45);
+}
+
+.grokvideo-inline-note p {
+  margin: 0;
+}
+
 .grokvideo-duration,
 .grokvideo-primary,
 .grokvideo-secondary {
@@ -423,7 +436,7 @@
 
 .grokvideo-statuspanel {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   align-items: start;
 }
@@ -500,8 +513,13 @@
   .grokvideo-duration-grid,
   .grokvideo-option-grid,
   .grokvideo-actions {
-    grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .grokvideo-statuspanel,
+  .grokvideo-duration-grid,
+  .grokvideo-option-grid {
+    grid-template-columns: 1fr;
   }
 
   .grokvideo-option-grid--aspect {
