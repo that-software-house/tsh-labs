@@ -19,6 +19,7 @@ const MAX_IMAGE_BYTES = Number.parseInt(
   import.meta.env.VITE_GROK_VIDEO_MAX_BYTES || import.meta.env.VITE_VIDEO_UPLOAD_MAX_BYTES || '10485760',
   10
 );
+const MAX_PROMPT_CHARS = 2000;
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const DURATION_OPTIONS = [
@@ -77,6 +78,7 @@ export default function GrokVideoApp() {
   const { isAuthenticated } = useAuth();
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [durationSeconds, setDurationSeconds] = useState(5);
   const [job, setJob] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,6 +143,7 @@ export default function GrokVideoApp() {
   const handleReset = () => {
     setError('');
     setImageFile(null);
+    setPrompt('');
     setJob(null);
     setDurationSeconds(5);
   };
@@ -156,12 +159,23 @@ export default function GrokVideoApp() {
       return;
     }
 
+    const normalizedPrompt = prompt.trim();
+    if (!normalizedPrompt) {
+      setError('Add a prompt describing how the image should animate.');
+      return;
+    }
+
+    if (normalizedPrompt.length > MAX_PROMPT_CHARS) {
+      setError(`Prompt is too long. Keep it under ${MAX_PROMPT_CHARS} characters.`);
+      return;
+    }
+
     setError('');
     setIsSubmitting(true);
     setJob(null);
 
     try {
-      const createdJob = await createGrokVideoJob(imageFile, durationSeconds);
+      const createdJob = await createGrokVideoJob(imageFile, normalizedPrompt, durationSeconds);
       setJob(createdJob);
     } catch (submitError) {
       setError(submitError.message || 'Unable to start the Grok video job.');
@@ -269,6 +283,32 @@ export default function GrokVideoApp() {
             <span>{getAcceptedTypeLabel()}</span>
             <span>Up to {formatBytes(MAX_IMAGE_BYTES)}</span>
             {imageFile ? <strong>{imageFile.name} · {formatBytes(imageFile.size)}</strong> : null}
+          </div>
+
+          <div className="grokvideo-card__header grokvideo-card__header--compact">
+            <div className="grokvideo-card__icon">
+              <Sparkles size={18} />
+            </div>
+            <div>
+              <div className="grokvideo-card__eyebrow">// MOTION PROMPT</div>
+              <h3>Describe the animation</h3>
+              <p>Tell Grok what should move, how the camera behaves, and the mood of the shot.</p>
+            </div>
+          </div>
+
+          <div className="grokvideo-prompt">
+            <textarea
+              className="grokvideo-textarea"
+              value={prompt}
+              onChange={(event) => setPrompt(event.target.value.slice(0, MAX_PROMPT_CHARS))}
+              placeholder="Example: Slow cinematic push-in, hair and fabric moving gently in the wind, soft afternoon light, realistic natural motion."
+              maxLength={MAX_PROMPT_CHARS}
+              disabled={isBusy}
+            />
+            <div className="grokvideo-prompt__meta">
+              <span>Be specific about motion, camera, and pacing.</span>
+              <strong>{prompt.length}/{MAX_PROMPT_CHARS}</strong>
+            </div>
           </div>
 
           <div className="grokvideo-card__header grokvideo-card__header--compact">

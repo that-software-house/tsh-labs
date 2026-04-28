@@ -240,6 +240,42 @@
   font-size: 0.92rem;
 }
 
+.grokvideo-prompt {
+  display: grid;
+  gap: 10px;
+}
+
+.grokvideo-textarea {
+  width: 100%;
+  min-height: 148px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(8, 12, 12, 0.86);
+  color: var(--grokvideo-copy);
+  padding: 16px 18px;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.grokvideo-textarea::placeholder {
+  color: var(--grokvideo-dim);
+}
+
+.grokvideo-textarea:focus {
+  outline: none;
+  border-color: var(--grokvideo-border-strong);
+  box-shadow: 0 0 0 1px rgba(216, 245, 107, 0.18);
+}
+
+.grokvideo-prompt__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--grokvideo-muted);
+  font-size: 0.9rem;
+}
+
 .grokvideo-filemeta strong {
   color: var(--grokvideo-copy);
   font-weight: 500;
