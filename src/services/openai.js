@@ -12,6 +12,7 @@ const TONE_API_BASE = apiUrl('/api/tone');
 const DATA_INSIGHTS_API_BASE = apiUrl('/api/data-insights');
 const INVOICE_CHASER_API_BASE = apiUrl('/api/invoice-chaser');
 const VIDEO_ANALYZER_API_BASE = apiUrl('/api/video-analyzer');
+const GROK_VIDEO_API_BASE = apiUrl('/api/grok-video');
 const BILLING_API_BASE = apiUrl('/api/billing');
 const LEADFLOW_API_BASE = apiUrl('/api/leadflow');
 const METRICS_API_BASE = apiUrl('/api/metrics');
@@ -374,6 +375,52 @@ export async function fetchYouTubeFrames(youtubeUrl) {
   }
 
   return data || {};
+}
+
+export async function createGrokVideoJob(file, durationSeconds = 5) {
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('durationSeconds', String(durationSeconds));
+
+  const authHeaders = await getAuthHeaders();
+  delete authHeaders['Content-Type'];
+
+  const response = await fetch(`${GROK_VIDEO_API_BASE}/jobs`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  const rawBody = await response.text();
+  const data = parseTextAsJsonSafe(rawBody);
+  syncUsageFromResponse(response, data);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message
+        || data?.error
+        || rawBody.trim()
+        || `Failed to start Grok video generation (HTTP ${response.status})`
+    );
+  }
+
+  return data?.job || {};
+}
+
+export async function fetchGrokVideoJob(jobId) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${GROK_VIDEO_API_BASE}/jobs/${encodeURIComponent(jobId)}`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Failed to fetch Grok video job');
+  }
+
+  return data?.job || {};
 }
 
 export async function fetchAppUsageCounts(days = 30) {

@@ -12,11 +12,13 @@ import LeadFlowApp from '@/components/apps/LeadFlowApp';
 import TextCleanerApp from '@/components/apps/TextCleanerApp';
 import ToneConverterApp from '@/components/apps/ToneConverterApp';
 import VideoAnalyzerApp from '@/components/apps/VideoAnalyzerApp';
+import GrokVideoApp from '@/components/apps/GrokVideoApp';
 
 const toolRegistry = {
   contentforge: ContentForgeApp,
   datainsights: DataInsightsApp,
   docanalyzer: DocAnalyzerApp,
+  grokvideo: GrokVideoApp,
   invoicechaser: InvoiceChaserApp,
   leadflow: LeadFlowApp,
   textcleaner: TextCleanerApp,
@@ -122,4 +124,3 @@ export default function LabsToolPage() {
     </LabsChrome>
   );
 }
-

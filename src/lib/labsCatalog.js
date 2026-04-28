@@ -279,6 +279,41 @@ export const labsCatalog = [
       ['Live', 'shipping now'],
     ],
   },
+  {
+    id: 'grokvideo',
+    num: '09',
+    name: 'Grok Video',
+    tag: 'Image to motion',
+    blurb:
+      'Upload a still image, choose a short duration, and generate a Grok-powered motion clip directly inside Labs.',
+    category: 'Content',
+    status: 'beta',
+    price: 'Auth required',
+    users: 'Pilot',
+    usersLabel: 'internal build',
+    social: 'Built for quick motion tests',
+    public: true,
+    complete: true,
+    featured: true,
+    authRequired: true,
+    accent: '#D4F542',
+    headline:
+      'Turn a single still image into a 5s or 10s Grok video without leaving the app.',
+    subhead:
+      'The first release keeps the workflow narrow on purpose: image upload only, default motion prompting, authenticated access, and temporary in-app playback.',
+    manifest: [
+      ['Input', 'JPG, PNG, or WebP image'],
+      ['Output', '5s or 10s generated video'],
+      ['Best for', 'Motion concepts and quick visual tests'],
+      ['Auth', 'Required'],
+    ],
+    stats: [
+      ['5 / 10s', 'clip lengths'],
+      ['Grok', 'video generation'],
+      ['Auth', 'gated workflow'],
+      ['Beta', 'in-app preview only'],
+    ],
+  },
 ];
 
 export const publicLabsApps = labsCatalog.filter((app) => app.public && app.complete);
