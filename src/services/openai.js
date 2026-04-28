@@ -65,16 +65,33 @@ function parseUsageHeaders(response) {
   const limitHeader = response.headers.get('X-RateLimit-Limit');
   const remainingHeader = response.headers.get('X-RateLimit-Remaining');
   const resetHeader = response.headers.get('X-RateLimit-Reset');
+  const creditBalanceHeader = response.headers.get('X-Credit-Balance');
+  const creditCostHeader = response.headers.get('X-Credit-Cost');
 
-  if (limitHeader === null || remainingHeader === null) return null;
+  if (limitHeader === null || remainingHeader === null) {
+    if (creditBalanceHeader === null) return null;
+
+    const balance = Number.parseInt(creditBalanceHeader, 10);
+    const cost = Number.parseInt(creditCostHeader || '0', 10);
+    if (!Number.isFinite(balance)) return null;
+
+    return {
+      credits: {
+        balance: Math.max(0, balance),
+        cost: Number.isFinite(cost) ? Math.max(0, cost) : 0,
+      },
+    };
+  }
 
   const limit = Number.parseInt(limitHeader, 10);
   const remaining = Number.parseInt(remainingHeader, 10);
   const resetAtMs = resetHeader ? Number.parseInt(resetHeader, 10) : null;
+  const creditBalance = creditBalanceHeader === null ? null : Number.parseInt(creditBalanceHeader, 10);
+  const creditCost = creditCostHeader === null ? null : Number.parseInt(creditCostHeader, 10);
 
   if (!Number.isFinite(limit) || !Number.isFinite(remaining)) return null;
 
-  return {
+  const usage = {
     used: Math.max(0, limit - remaining),
     limit,
     remaining: Math.max(0, remaining),
@@ -83,6 +100,15 @@ function parseUsageHeaders(response) {
         ? new Date(resetAtMs).toISOString()
         : undefined,
   };
+
+  if (Number.isFinite(creditBalance)) {
+    usage.credits = {
+      balance: Math.max(0, creditBalance),
+      cost: Number.isFinite(creditCost) ? Math.max(0, creditCost) : 0,
+    };
+  }
+
+  return usage;
 }
 
 function syncUsageFromResponse(response, data) {
@@ -289,6 +315,37 @@ export async function createInvoiceChaserCheckout() {
   const data = await parseJsonSafe(response);
   if (!response.ok) {
     throw new Error(data?.message || data?.error || 'Failed to start checkout');
+  }
+
+  return data || {};
+}
+
+export async function fetchBillingProfile() {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BILLING_API_BASE}/profile`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Failed to load billing profile');
+  }
+
+  return data || {};
+}
+
+export async function createCreditsCheckout(dollars) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BILLING_API_BASE}/checkout`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ dollars }),
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Failed to start credit checkout');
   }
 
   return data || {};

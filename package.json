@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "dev": "vite --mode development --host 127.0.0.1",
+    "build": "vite build --mode production",
+    "preview": "vite preview --mode production --host 127.0.0.1"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.81.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.553.0",
     "react": "^19.2.0",

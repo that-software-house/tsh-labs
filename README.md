@@ -11,18 +11,19 @@ Internal and client-facing AI laboratory for That Software House. Hosted on self
 ## Setup
 
 ### 1. Environment Variables
-Create a `.env` file in the root directory:
+Create environment files in the root directory:
+
+```bash
+cp .env.development.example .env.development
+cp .env.production.example .env.production
+```
+
+`.env` can hold shared defaults. `npm run dev` loads `.env` and `.env.development`; `npm run build` and `npm run preview` load `.env` and `.env.production`. File values override matching shell variables, and managed env keys from the shell are cleared before the files are loaded.
+
 ```env
-# Supabase
 VITE_SUPABASE_URL=your_url
 VITE_SUPABASE_ANON_KEY=your_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# OpenAI
-OPENAI_API_KEY=your_openai_key
-
-# Port
-PORT=3001
+VITE_API_BASE_URL=http://127.0.0.1:3001
 ```
 
 ### 2. Install Dependencies
@@ -35,19 +36,18 @@ npm install
 # Frontend
 npm run dev
 
-# Backend
-npm run server
+# Backend lives in ../tsh-labs-api
 ```
 
 ### 4. Build & Production
 ```bash
 npm run build
-npm start
+npm run preview
 ```
 
 ## Moving projects
 This repo is the permanent home for all AI-heavy TSH projects. When adding a new module:
-1. Create the backend logic in `server/routes/`
-2. Register the route in `server/index.js`
+1. Create the backend logic in `../tsh-labs-api/server/routes/`
+2. Register the route in `../tsh-labs-api/server/index.js`
 3. Create the frontend component in `src/components/apps/`
 4. Register the project in `src/lib/projects.js`

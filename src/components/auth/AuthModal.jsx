@@ -3,7 +3,7 @@ import { X, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import './AuthModal.css';
 
-const AuthModal = ({ isOpen, onClose }) => {
+const AuthModal = ({ isOpen, onClose, onAuthenticated }) => {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +40,7 @@ const AuthModal = ({ isOpen, onClose }) => {
         setMessage('Password reset link sent. Check your email.');
       } else {
         await signIn(email, password);
+        onAuthenticated?.();
         onClose();
       }
     } catch (err) {

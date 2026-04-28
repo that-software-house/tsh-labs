@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext({});
 const USAGE_UPDATED_EVENT = 'usage:updated';
+const STARTER_CREDITS = 100;
 const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 
 function apiUrl(path) {
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [usage, setUsage] = useState({ used: 0, limit: 10, remaining: 10 });
+  const [credits, setCredits] = useState({ balance: STARTER_CREDITS, cost: 0 });
 
   useEffect(() => {
     // Get initial session
@@ -35,6 +37,9 @@ export const AuthProvider = ({ children }) => {
     const handleUsageUpdated = (event) => {
       if (event?.detail && typeof event.detail === 'object') {
         setUsage((prev) => ({ ...prev, ...event.detail }));
+        if (event.detail.credits && typeof event.detail.credits === 'object') {
+          setCredits((prev) => ({ ...prev, ...event.detail.credits }));
+        }
       }
     };
 
@@ -45,6 +50,36 @@ export const AuthProvider = ({ children }) => {
       window.removeEventListener(USAGE_UPDATED_EVENT, handleUsageUpdated);
     };
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setCredits({ balance: STARTER_CREDITS, cost: 0 });
+      return undefined;
+    }
+
+    const channel = supabase
+      .channel(`user-credit-balance:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_credit_balances',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const nextBalance = Number.parseInt(String(payload.new?.balance ?? ''), 10);
+          if (Number.isFinite(nextBalance)) {
+            setCredits((prev) => ({ ...prev, balance: nextBalance }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const fetchUsage = async (accessToken = null) => {
     try {
@@ -63,6 +98,9 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         if (data && typeof data === 'object') {
           setUsage(data);
+          if (data.credits && typeof data.credits === 'object') {
+            setCredits((prev) => ({ ...prev, ...data.credits }));
+          }
         }
       }
     } catch (err) {
@@ -138,6 +176,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     usage,
+    credits,
     signUp,
     signIn,
     signOut,

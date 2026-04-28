@@ -8,6 +8,7 @@ import './UsageBanner.css';
 const UsageBanner = () => {
   const {
     user,
+    credits,
     usage,
     signOut,
     isAuthenticated,
@@ -22,8 +23,9 @@ const UsageBanner = () => {
   const [billingError, setBillingError] = useState('');
 
   const usagePercent = (usage.used / usage.limit) * 100;
-  const isLow = usage.remaining <= 3;
-  const isExhausted = usage.remaining === 0;
+  const creditBalance = Number.parseInt(String(credits?.balance ?? 0), 10) || 0;
+  const isLow = isAuthenticated ? creditBalance <= 10 : usage.remaining <= 3;
+  const isExhausted = isAuthenticated ? creditBalance === 0 : usage.remaining === 0;
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -89,8 +91,15 @@ const UsageBanner = () => {
           <div className="usage-info">
             <Zap size={16} />
             <span className="usage-text">
-              <strong>{usage.remaining}</strong> of {usage.limit} requests remaining today
-              {hasInvoiceChaserUnlimited ? ' • Invoice uploads: unlimited' : ''}
+              {isAuthenticated ? (
+                <>
+                  <strong>{creditBalance.toLocaleString()}</strong> credits available
+                </>
+              ) : (
+                <>
+                  <strong>{usage.remaining}</strong> of {usage.limit} requests remaining today
+                </>
+              )}
             </span>
             {isPremium && (
               <span className="premium-badge">
@@ -106,12 +115,14 @@ const UsageBanner = () => {
             )}
           </div>
 
-          <div className="usage-bar">
-            <div
-              className="usage-bar-fill"
-              style={{ width: `${Math.min(usagePercent, 100)}%` }}
-            />
-          </div>
+          {!isAuthenticated && (
+            <div className="usage-bar">
+              <div
+                className="usage-bar-fill"
+                style={{ width: `${Math.min(usagePercent, 100)}%` }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="usage-actions">

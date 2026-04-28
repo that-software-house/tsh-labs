@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import AuthModal from '@/components/auth/AuthModal';
+import ProfileModal from '@/components/auth/ProfileModal';
 import { publicLabsApps } from '@/lib/labsCatalog';
 
 function AppStatus() {
@@ -13,7 +15,27 @@ function AppStatus() {
 }
 
 export function LabsChrome({ active, children }) {
-  const { isAuthenticated, user } = useAuth();
+  const { credits, isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [openProfileAfterAuth, setOpenProfileAfterAuth] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !openProfileAfterAuth) return;
+    setShowAuthModal(false);
+    setShowProfileModal(true);
+    setOpenProfileAfterAuth(false);
+  }, [isAuthenticated, openProfileAfterAuth]);
+
+  const handleProfileClick = () => {
+    if (isAuthenticated) {
+      setShowProfileModal(true);
+      return;
+    }
+
+    setShowAuthModal(true);
+    setOpenProfileAfterAuth(true);
+  };
 
   return (
     <div className="labs-site">
@@ -42,15 +64,14 @@ export function LabsChrome({ active, children }) {
 
           <div className="labs-topnav__meta">
             <AppStatus />
-            {isAuthenticated ? (
-              <Link to="/login" className="labs-meta-link">
-                {user?.email?.split('@')[0] || 'account'}
-              </Link>
-            ) : (
-              <Link to="/login" className="labs-meta-link">
-                Sign in
-              </Link>
+            {isAuthenticated && (
+              <span className="labs-credit-chip">
+                {Number.parseInt(String(credits?.balance ?? 0), 10).toLocaleString()} credits
+              </span>
             )}
+            <button type="button" className="labs-meta-link labs-meta-button" onClick={handleProfileClick}>
+              Profile
+            </button>
           </div>
         </div>
       </header>
@@ -114,7 +135,21 @@ export function LabsChrome({ active, children }) {
           <span>LABS-TSH PUBLIC SHELL</span>
         </div>
       </footer>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onAuthenticated={() => {
+          if (openProfileAfterAuth) {
+            setShowProfileModal(true);
+            setOpenProfileAfterAuth(false);
+          }
+        }}
+        onClose={() => {
+          setShowAuthModal(false);
+          if (!isAuthenticated) setOpenProfileAfterAuth(false);
+        }}
+      />
+      <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </div>
   );
 }
-
