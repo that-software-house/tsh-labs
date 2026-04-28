@@ -38,7 +38,10 @@ function loadFileEnv(mode) {
     }
   }
 
+  // Capture platform-injected vars (e.g. Netlify) before clearing managed keys
+  const platformEnv = {};
   for (const key of managedKeys) {
+    if (process.env[key] !== undefined) platformEnv[key] = process.env[key];
     delete process.env[key];
   }
 
@@ -49,7 +52,8 @@ function loadFileEnv(mode) {
     dotenv.populate(process.env, parsed, { override: true });
   }
 
-  return fileEnv;
+  // File-based env wins over platform env; platform env fills gaps (e.g. Netlify build)
+  return { ...platformEnv, ...fileEnv };
 }
 
 function buildImportMetaEnv(fileEnv, mode) {
