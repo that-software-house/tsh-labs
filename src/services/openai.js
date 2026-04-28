@@ -377,11 +377,19 @@ export async function fetchYouTubeFrames(youtubeUrl) {
   return data || {};
 }
 
-export async function createGrokVideoJob(file, prompt, durationSeconds = 5) {
+export async function createGrokVideoJob(
+  file,
+  prompt,
+  durationSeconds = 5,
+  aspectRatio = 'auto',
+  resolution = 'auto'
+) {
   const formData = new FormData();
   formData.append('image', file);
   formData.append('prompt', prompt);
   formData.append('durationSeconds', String(durationSeconds));
+  formData.append('aspectRatio', aspectRatio);
+  formData.append('resolution', resolution);
 
   const authHeaders = await getAuthHeaders();
   delete authHeaders['Content-Type'];

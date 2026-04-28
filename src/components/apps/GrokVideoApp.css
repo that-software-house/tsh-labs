@@ -170,6 +170,10 @@
   padding: 22px;
 }
 
+.grokvideo-card--output {
+  align-content: start;
+}
+
 .grokvideo-card__header {
   display: flex;
   gap: 14px;
@@ -217,8 +221,16 @@
 .grokvideo-preview,
 .grokvideo-video {
   display: block;
-  object-fit: cover;
   border-radius: 20px;
+}
+
+.grokvideo-preview {
+  object-fit: cover;
+}
+
+.grokvideo-video {
+  object-fit: contain;
+  background: rgba(8, 12, 12, 0.9);
 }
 
 .grokvideo-placeholder,
@@ -287,6 +299,16 @@
   gap: 12px;
 }
 
+.grokvideo-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grokvideo-option-grid--aspect {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .grokvideo-duration,
 .grokvideo-primary,
 .grokvideo-secondary {
@@ -325,6 +347,49 @@
   gap: 12px;
 }
 
+.grokvideo-cost {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(216, 245, 107, 0.16);
+  background: linear-gradient(135deg, rgba(216, 245, 107, 0.08), rgba(255, 184, 106, 0.06));
+}
+
+.grokvideo-cost__eyebrow {
+  color: var(--grokvideo-dim);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.grokvideo-cost__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.grokvideo-cost__row strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.grokvideo-cost__row p,
+.grokvideo-cost__note {
+  margin: 0;
+  color: var(--grokvideo-muted);
+}
+
+.grokvideo-cost__badge {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(8, 12, 12, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+  color: var(--grokvideo-copy);
+}
+
 .grokvideo-primary,
 .grokvideo-secondary {
   display: inline-flex;
@@ -358,8 +423,14 @@
 
 .grokvideo-statuspanel {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  align-items: start;
+}
+
+.grokvideo-statuspanel > div {
+  min-height: 0;
+  align-self: start;
 }
 
 .grokvideo-progress {
@@ -427,8 +498,18 @@
 
   .grokvideo-statuspanel,
   .grokvideo-duration-grid,
+  .grokvideo-option-grid,
   .grokvideo-actions {
     grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .grokvideo-option-grid--aspect {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grokvideo-cost__row {
+    align-items: flex-start;
     flex-direction: column;
   }
 

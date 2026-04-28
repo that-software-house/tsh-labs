@@ -3,6 +3,11 @@ import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext({});
 const USAGE_UPDATED_EVENT = 'usage:updated';
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
+
+function apiUrl(path) {
+  return API_ORIGIN ? `${API_ORIGIN}${path}` : path;
+}
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -48,8 +53,13 @@ export const AuthProvider = ({ children }) => {
         headers.Authorization = `Bearer ${accessToken}`;
       }
 
-      const response = await fetch('/api/usage', { headers });
+      const response = await fetch(apiUrl('/api/usage'), { headers });
       if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error(`Usage endpoint returned ${contentType || 'non-JSON content'}`);
+        }
+
         const data = await response.json();
         if (data && typeof data === 'object') {
           setUsage(data);
